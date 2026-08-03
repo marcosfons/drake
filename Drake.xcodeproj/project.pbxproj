@@ -12,37 +12,37 @@
 			containerPortal = 8D0D71562E843FBE00C45E0A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 8D0D715D2E843FBE00C45E0A;
-			remoteInfo = Dragon;
+			remoteInfo = Drake;
 		};
 		8D0D71762E843FBF00C45E0A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8D0D71562E843FBE00C45E0A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 8D0D715D2E843FBE00C45E0A;
-			remoteInfo = Dragon;
+			remoteInfo = Drake;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		8D0D715E2E843FBE00C45E0A /* Dragon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dragon.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8D0D716B2E843FBF00C45E0A /* DragonTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DragonTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		8D0D71752E843FBF00C45E0A /* DragonUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DragonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D0D715E2E843FBE00C45E0A /* Drake.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Drake.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D0D716B2E843FBF00C45E0A /* DrakeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DrakeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D0D71752E843FBF00C45E0A /* DrakeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DrakeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8D0D71602E843FBE00C45E0A /* Dragon */ = {
+		8D0D71602E843FBE00C45E0A /* Drake */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Dragon;
+			path = Drake;
 			sourceTree = "<group>";
 		};
-		8D0D716E2E843FBF00C45E0A /* DragonTests */ = {
+		8D0D716E2E843FBF00C45E0A /* DrakeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DragonTests;
+			path = DrakeTests;
 			sourceTree = "<group>";
 		};
-		8D0D71782E843FBF00C45E0A /* DragonUITests */ = {
+		8D0D71782E843FBF00C45E0A /* DrakeUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DragonUITests;
+			path = DrakeUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		8D0D71552E843FBE00C45E0A = {
 			isa = PBXGroup;
 			children = (
-				8D0D71602E843FBE00C45E0A /* Dragon */,
-				8D0D716E2E843FBF00C45E0A /* DragonTests */,
-				8D0D71782E843FBF00C45E0A /* DragonUITests */,
+				8D0D71602E843FBE00C45E0A /* Drake */,
+				8D0D716E2E843FBF00C45E0A /* DrakeTests */,
+				8D0D71782E843FBF00C45E0A /* DrakeUITests */,
 				8D0D715F2E843FBE00C45E0A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +85,9 @@
 		8D0D715F2E843FBE00C45E0A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D0D715E2E843FBE00C45E0A /* Dragon.app */,
-				8D0D716B2E843FBF00C45E0A /* DragonTests.xctest */,
-				8D0D71752E843FBF00C45E0A /* DragonUITests.xctest */,
+				8D0D715E2E843FBE00C45E0A /* Drake.app */,
+				8D0D716B2E843FBF00C45E0A /* DrakeTests.xctest */,
+				8D0D71752E843FBF00C45E0A /* DrakeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8D0D715D2E843FBE00C45E0A /* Dragon */ = {
+		8D0D715D2E843FBE00C45E0A /* Drake */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8D0D717F2E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "Dragon" */;
+			buildConfigurationList = 8D0D717F2E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "Drake" */;
 			buildPhases = (
 				8D0D715A2E843FBE00C45E0A /* Sources */,
 				8D0D715B2E843FBE00C45E0A /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				8D0D71602E843FBE00C45E0A /* Dragon */,
+				8D0D71602E843FBE00C45E0A /* Drake */,
 			);
-			name = Dragon;
+			name = Drake;
 			packageProductDependencies = (
 			);
-			productName = Dragon;
-			productReference = 8D0D715E2E843FBE00C45E0A /* Dragon.app */;
+			productName = Drake;
+			productReference = 8D0D715E2E843FBE00C45E0A /* Drake.app */;
 			productType = "com.apple.product-type.application";
 		};
-		8D0D716A2E843FBF00C45E0A /* DragonTests */ = {
+		8D0D716A2E843FBF00C45E0A /* DrakeTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8D0D71822E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DragonTests" */;
+			buildConfigurationList = 8D0D71822E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DrakeTests" */;
 			buildPhases = (
 				8D0D71672E843FBF00C45E0A /* Sources */,
 				8D0D71682E843FBF00C45E0A /* Frameworks */,
@@ -131,18 +131,18 @@
 				8D0D716D2E843FBF00C45E0A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				8D0D716E2E843FBF00C45E0A /* DragonTests */,
+				8D0D716E2E843FBF00C45E0A /* DrakeTests */,
 			);
-			name = DragonTests;
+			name = DrakeTests;
 			packageProductDependencies = (
 			);
-			productName = DragonTests;
-			productReference = 8D0D716B2E843FBF00C45E0A /* DragonTests.xctest */;
+			productName = DrakeTests;
+			productReference = 8D0D716B2E843FBF00C45E0A /* DrakeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		8D0D71742E843FBF00C45E0A /* DragonUITests */ = {
+		8D0D71742E843FBF00C45E0A /* DrakeUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8D0D71852E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DragonUITests" */;
+			buildConfigurationList = 8D0D71852E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DrakeUITests" */;
 			buildPhases = (
 				8D0D71712E843FBF00C45E0A /* Sources */,
 				8D0D71722E843FBF00C45E0A /* Frameworks */,
@@ -154,13 +154,13 @@
 				8D0D71772E843FBF00C45E0A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				8D0D71782E843FBF00C45E0A /* DragonUITests */,
+				8D0D71782E843FBF00C45E0A /* DrakeUITests */,
 			);
-			name = DragonUITests;
+			name = DrakeUITests;
 			packageProductDependencies = (
 			);
-			productName = DragonUITests;
-			productReference = 8D0D71752E843FBF00C45E0A /* DragonUITests.xctest */;
+			productName = DrakeUITests;
+			productReference = 8D0D71752E843FBF00C45E0A /* DrakeUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 8D0D71592E843FBE00C45E0A /* Build configuration list for PBXProject "Dragon" */;
+			buildConfigurationList = 8D0D71592E843FBE00C45E0A /* Build configuration list for PBXProject "Drake" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8D0D715D2E843FBE00C45E0A /* Dragon */,
-				8D0D716A2E843FBF00C45E0A /* DragonTests */,
-				8D0D71742E843FBF00C45E0A /* DragonUITests */,
+				8D0D715D2E843FBE00C45E0A /* Drake */,
+				8D0D716A2E843FBF00C45E0A /* DrakeTests */,
+				8D0D71742E843FBF00C45E0A /* DrakeUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		8D0D716D2E843FBF00C45E0A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 8D0D715D2E843FBE00C45E0A /* Dragon */;
+			target = 8D0D715D2E843FBE00C45E0A /* Drake */;
 			targetProxy = 8D0D716C2E843FBF00C45E0A /* PBXContainerItemProxy */;
 		};
 		8D0D71772E843FBF00C45E0A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 8D0D715D2E843FBE00C45E0A /* Dragon */;
+			target = 8D0D715D2E843FBE00C45E0A /* Drake */;
 			targetProxy = 8D0D71762E843FBF00C45E0A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -398,18 +398,18 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 22VF753426;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_CFBundleDisplayName = Drake;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.Dragon;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.Drake;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -430,18 +430,18 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 22VF753426;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_CFBundleDisplayName = Drake;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.Dragon;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.Drake;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -463,14 +463,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DragonTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DrakeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dragon.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dragon";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Drake.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Drake";
 			};
 			name = Debug;
 		};
@@ -484,14 +484,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DragonTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DrakeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dragon.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dragon";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Drake.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Drake";
 			};
 			name = Release;
 		};
@@ -503,14 +503,14 @@
 				DEVELOPMENT_TEAM = 22VF753426;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DragonUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DrakeUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Dragon;
+				TEST_TARGET_NAME = Drake;
 			};
 			name = Debug;
 		};
@@ -522,21 +522,21 @@
 				DEVELOPMENT_TEAM = 22VF753426;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DragonUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marcos.DrakeUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Dragon;
+				TEST_TARGET_NAME = Drake;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8D0D71592E843FBE00C45E0A /* Build configuration list for PBXProject "Dragon" */ = {
+		8D0D71592E843FBE00C45E0A /* Build configuration list for PBXProject "Drake" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8D0D717D2E843FBF00C45E0A /* Debug */,
@@ -545,7 +545,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8D0D717F2E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "Dragon" */ = {
+		8D0D717F2E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "Drake" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8D0D71802E843FBF00C45E0A /* Debug */,
@@ -554,7 +554,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8D0D71822E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DragonTests" */ = {
+		8D0D71822E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DrakeTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8D0D71832E843FBF00C45E0A /* Debug */,
@@ -563,7 +563,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8D0D71852E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DragonUITests" */ = {
+		8D0D71852E843FBF00C45E0A /* Build configuration list for PBXNativeTarget "DrakeUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8D0D71862E843FBF00C45E0A /* Debug */,

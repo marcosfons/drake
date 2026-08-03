@@ -1,0 +1,140 @@
+.TH @NAME@ 1 "2026-08-03" "@NAME@ 1.0" "User Commands"
+.SH NAME
+@NAME@ \- drag-and-drop source/target with a history of past runs
+.SH SYNOPSIS
+.B @NAME@
+[\fIOPTION\fR...] [\fIFILE\fR|\fIURI\fR...]
+.br
+.B @NAME@
+.SH DESCRIPTION
+Many applications, particularly web applications and chat clients, expect files
+to be dragged into them. If you do not habitually use Finder that is a problem.
+.B @NAME@
+opens a small window holding the files you name, ready to be dragged wherever
+you need them:
+.PP
+.RS
+@NAME@ file.tar.gz
+.RE
+.PP
+Dragged items are offered as a file URL, a URL and as plain text, so browsers,
+Electron applications and text fields all accept them.
+.PP
+To drag files \fIin\fR instead, use
+.B \-\-target\fR:
+dropped items are printed to standard output.
+.PP
+Run with no arguments,
+.B @NAME@
+shows the history of previous runs. Each entry expands into the items it held,
+and any of them can be dragged straight out of the list or reopened as a drag
+source. History is kept in
+.IR ~/Library/Application\ Support/Drake/history.json .
+.SH OPTIONS
+.TP
+.BR \-\-and\-exit ", " \-x
+Exit after a single completed drop.
+.TP
+.BR \-\-target ", " \-t
+Act as a target instead of a source.
+.TP
+.BR \-\-keep ", " \-k
+With \fB\-\-target\fR, keep dropped files so they can be dragged out again.
+.TP
+.BR \-\-print\-path ", " \-p
+With \fB\-\-target\fR, print file paths instead of URIs.
+.TP
+.BR \-\-all ", " \-a
+Drag all files at once.
+.TP
+.BR \-\-all\-compact ", " \-A
+Drag all files at once, only displaying the number of files.
+.TP
+.BR \-\-icon\-only ", " \-i
+Only show icons.
+.TP
+.BR \-\-name\-only ", " \-f
+Only show each file's basename, not its path.
+.TP
+.BR \-\-full\-path ", " \-F
+Show the absolute path to all files.
+.TP
+.BR \-\-on\-top ", " \-T
+Keep the window above other windows.
+.TP
+.BR \-\-stdin ", " \-I
+Read filenames from standard input.
+.TP
+.BR \-\-thumb\-size ", " \-s " " \fISIZE\fR
+Set thumbnail size, 16 to 512 (default 96).
+.TP
+.BR \-\-verbose ", " \-v
+Be verbose on standard error.
+.TP
+.BR \-\-history ", " \-H
+Browse the history of previous runs even when files are given.
+.TP
+.BR \-\-no\-history ", " \-N
+Do not record this run in the history.
+.TP
+.B \-\-no\-animation
+Open the window without the opening animation.
+.TP
+.B \-\-help
+Show help.
+.TP
+.B \-\-version
+Show version details.
+.SH SELECTION
+Everything starts selected, so one drag sends the whole list. Click a row to
+select just that row, Command-click to toggle rows, Shift-click to extend a
+range, and press and sweep in empty space to rubber-band select. Dragging any
+selected row carries the whole selection.
+.SH KEYS
+.TP
+.B Cmd-A
+Select all.
+.TP
+.B Cmd-O
+Open the selection.
+.TP
+.B Cmd-R
+Reveal the selection in Finder.
+.TP
+.B Cmd-C
+Copy the selection's paths.
+.TP
+.B Cmd-Y
+Show the history.
+.TP
+.B Cmd-[
+Go back from the history to the files.
+.TP
+.B Up/Down
+Move the selection; hold Shift to extend it.
+.TP
+.B Escape
+Close.
+.SH EXAMPLES
+.TP
+Drag a single file and quit once it lands:
+.B @NAME@ \-x report.pdf
+.TP
+Collect files dropped from elsewhere:
+.B @NAME@ \-\-target \-\-keep
+.TP
+Send everything in a directory as one drag:
+.B @NAME@ \-\-all *.png
+.TP
+Take filenames from a pipe:
+.B find . \-name '*.log' | @NAME@ \-\-stdin
+.TP
+Reopen something dragged earlier:
+.B @NAME@
+.SH EXIT STATUS
+Exits 0 normally, 1 on a bad option or a file that does not exist.
+.SH SEE ALSO
+dragon(1), the Linux program this is modelled on:
+.I https://github.com/mwh/dragon
+.SH AUTHOR
+Written for macOS in Swift, after mwh's dragon for X and Wayland.
