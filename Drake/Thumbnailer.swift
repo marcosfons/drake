@@ -10,6 +10,7 @@ import AppKit
 import Observation
 import QuickLookThumbnailing
 import SwiftUI
+import UniformTypeIdentifiers
 
 @Observable
 final class Thumbnailer {
@@ -27,11 +28,20 @@ final class Thumbnailer {
         cache[key(for: item, size: size)] ?? item.systemIcon
     }
 
+    /// Only pictures and video get a content thumbnail. Quick Look also
+    /// renders text, code and PDFs, but at row size those come out as blank
+    /// white pages, so the type icon reads better.
+    nonisolated static func wantsThumbnail(for url: URL) -> Bool {
+        guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
+        return type.conforms(to: .image) || type.conforms(to: .movie)
+    }
+
     /// Generates a content thumbnail, returning nil when the file has none.
     func thumbnail(for item: DrakeItem, size: CGFloat) async -> NSImage? {
         let cacheKey = key(for: item, size: size)
         if let cached = cache[cacheKey] { return cached }
-        guard let url = item.fileURL, item.exists, !item.isDirectory else { return nil }
+        guard let url = item.fileURL, item.exists, !item.isDirectory,
+              Self.wantsThumbnail(for: url) else { return nil }
         guard !inFlight.contains(cacheKey) else { return nil }
         inFlight.insert(cacheKey)
         defer { inFlight.remove(cacheKey) }

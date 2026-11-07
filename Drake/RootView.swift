@@ -19,6 +19,5 @@ struct RootView: View {
                 HistoryView()
             }
         }
-        .frame(minWidth: 360, minHeight: 200)
     }
 }

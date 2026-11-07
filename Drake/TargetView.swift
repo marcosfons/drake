@@ -34,10 +34,10 @@ struct TargetView: View {
     private var dropZone: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
-                .fill(isHighlighted ? AnyShapeStyle(Color.accentColor.opacity(0.12)) : AnyShapeStyle(.quaternary.opacity(0.35)))
+                .fill(isHighlighted ? AnyShapeStyle(Palette.accent.opacity(0.14)) : AnyShapeStyle(.quaternary.opacity(0.35)))
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(
-                    isHighlighted ? Color.accentColor : Color.secondary.opacity(0.45),
+                    isHighlighted ? Palette.accent : Color.secondary.opacity(0.45),
                     style: StrokeStyle(lineWidth: isHighlighted ? 2 : 1.5, dash: [7, 5])
                 )
 
@@ -85,7 +85,7 @@ struct TargetView: View {
             .padding(.vertical, Metrics.listPaddingVertical)
         }
         .frame(height: Metrics.visibleListHeight(rowCount: model.items.count, iconSize: 28))
-        .background(.background)
+        .background(Palette.background)
     }
 
     private var footer: some View {
@@ -106,11 +106,13 @@ struct TargetView: View {
             }
 
             Button("Close") { model.terminate() }
-                .keyboardShortcut(.escape, modifiers: [])
+                .help("Close (Escape or q)")
         }
-        .padding(.horizontal, 12)
+        .buttonStyle(FooterButtonStyle())
+        .padding(.horizontal, 8)
+        .padding(.leading, 4)
         .frame(height: Metrics.footerHeight)
-        .background(.bar)
+        .background(Palette.bar)
     }
 
     private var statusText: String {

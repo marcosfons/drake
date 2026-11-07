@@ -64,7 +64,7 @@ struct HistoryView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(.bar)
+        .background(Palette.bar)
     }
 
     // MARK: - List
@@ -88,7 +88,7 @@ struct HistoryView: View {
                 }
                 .padding(10)
             }
-            .background(.background)
+            .background(Palette.background)
         }
     }
 
@@ -114,7 +114,7 @@ struct HistoryView: View {
         }
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(entry.pinned ? Color.accentColor.opacity(0.5) : .clear)
+                .strokeBorder(entry.pinned ? Palette.accent.opacity(0.6) : .clear)
         }
     }
 
@@ -277,11 +277,11 @@ struct HistoryView: View {
                 .disabled(history.entries.allSatisfy(\.pinned))
 
             Button("Close") { model.terminate() }
-                .keyboardShortcut(.escape, modifiers: [])
+                .help("Close (Escape or q)")
         }
         .padding(.horizontal, 12)
         .frame(height: Metrics.footerHeight)
-        .background(.bar)
+        .background(Palette.bar)
     }
 
     // MARK: - Helpers

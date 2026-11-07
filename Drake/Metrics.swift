@@ -26,7 +26,7 @@ nonisolated enum Metrics {
     /// Side padding around the list. Vertical is tighter so one item stays snug.
     static let listPadding: CGFloat = 10
     static let listPaddingVertical: CGFloat = 5
-    static let footerHeight: CGFloat = 30
+    static let footerHeight: CGFloat = 34
     static let dividerHeight: CGFloat = 1
     static let dragAllTileHeight: CGFloat = 54
     static let dragAllTileSpacing: CGFloat = 8

@@ -34,29 +34,33 @@ struct ItemRow: View {
                         .truncationMode(.middle)
                     if !item.exists {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(isSelected ? .white : .orange)
+                            .foregroundStyle(.orange)
                             .help("This file no longer exists")
                     }
                 }
-                if showsDetail {
-                    Text(item.detail(relativeTo: baseDirectory))
+                let detail = item.detail(relativeTo: baseDirectory)
+                if showsDetail, !detail.isEmpty {
+                    Text(detail)
                         .font(.caption)
-                        .foregroundStyle(isSelected ? AnyShapeStyle(.white.opacity(0.8)) : AnyShapeStyle(.secondary))
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
             }
 
             Spacer(minLength: 0)
+
+            // Always laid out, so selecting a row never shifts its text.
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(Palette.accent)
+                .opacity(isSelected ? 1 : 0)
         }
-        .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+        .foregroundStyle(.primary)
         .padding(.horizontal, 8)
         .frame(height: Metrics.rowHeight(iconSize: iconSize))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isSelected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.clear))
-        }
+        .selectionBackground(isSelected, cornerRadius: 6)
         .contentShape(Rectangle())
         .help(item.fileURL?.path ?? item.uri)
         .overlay {
@@ -89,9 +93,14 @@ struct ItemTile: View {
     var body: some View {
         ItemIcon(item: item, size: iconSize)
             .padding(6)
-            .background {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? AnyShapeStyle(Color.accentColor.opacity(0.8)) : AnyShapeStyle(.clear))
+            .selectionBackground(isSelected, cornerRadius: 8)
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white, Palette.accent)
+                        .padding(2)
+                }
             }
             .contentShape(Rectangle())
             .help(item.fileURL?.path ?? item.uri)

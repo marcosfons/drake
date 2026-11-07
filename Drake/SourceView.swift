@@ -12,7 +12,7 @@ struct SourceView: View {
     @Environment(AppModel.self) private var model
 
     /// Scroll position, so sweep-selection can map points to rows.
-    @State private var scrollOffset: CGFloat = 0
+    @State private var scrollOffset = ScrollOffsetBox()
     /// Selection a sweep started from, for ⌘/⇧ sweeps that add to it.
     @State private var sweepBase: Set<UUID> = []
 
@@ -75,11 +75,11 @@ struct SourceView: View {
                 // Exactly as tall as its rows on opening, and free to grow into
                 // whatever height the window is resized to.
                 .frame(minHeight: listHeight, maxHeight: .infinity)
-                .background(.background)
+                .background(Palette.background)
                 .onScrollGeometryChange(for: CGFloat.self) { geometry in
                     geometry.contentOffset.y
                 } action: { _, offset in
-                    scrollOffset = offset
+                    scrollOffset.value = offset
                 }
                 .overlay {
                     // Sweep-select from any empty space. Presses that land on a
@@ -203,11 +203,13 @@ struct SourceView: View {
             }
 
             Button("Close") { model.terminate() }
-                .keyboardShortcut(.escape, modifiers: [])
+                .help("Close (Escape or q)")
         }
-        .padding(.horizontal, 12)
+        .buttonStyle(FooterButtonStyle())
+        .padding(.horizontal, 8)
+        .padding(.leading, 4)
         .frame(height: Metrics.footerHeight)
-        .background(.bar)
+        .background(Palette.bar)
     }
 
     private var statusText: String {

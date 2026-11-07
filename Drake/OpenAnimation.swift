@@ -5,17 +5,17 @@
 //  The window scales up from slightly small while fading in. Kept well under
 //  200ms so it never delays a drag.
 //
-//  To turn it off:
-//    * for one run:   drake --no-animation …
-//    * for good:      set `isEnabled` below to false.
+//  Off by default: the window should appear the instant it is ready, and a
+//  fade from transparent made opening feel ~160ms slower. Set `isEnabled`
+//  below to true to bring it back; `--no-animation` then skips it per run.
 //
 
 import AppKit
 
 @MainActor
 enum OpenAnimation {
-    /// Master switch. Set to false to disable the animation everywhere.
-    static let isEnabled = true
+    /// Master switch. Off, so the window appears instantly.
+    static let isEnabled = false
 
     static let duration: TimeInterval = 0.16
     /// Starting scale; the window grows from this to full size.

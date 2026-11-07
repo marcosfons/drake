@@ -17,8 +17,11 @@ you need them:
 @NAME@ file.tar.gz
 .RE
 .PP
-Dragged items are offered as a file URL, a URL and as plain text, so browsers,
-Electron applications and text fields all accept them.
+A dragged file is offered as a file URL and nothing else, the same as Finder, so
+anything that accepts a file from Finder accepts it from @NAME@ - including
+sandboxed Mac Catalyst applications such as WhatsApp, which refuse a file drag
+that also advertises plain text. A dragged URI is offered as a URL and as plain
+text.
 .PP
 To drag files \fIin\fR instead, use
 .B \-\-target\fR:
@@ -61,6 +64,7 @@ Show the absolute path to all files.
 .TP
 .BR \-\-on\-top ", " \-T
 Keep the window above other windows.
+The window always appears on every Space (desktop), with or without this option.
 .TP
 .BR \-\-stdin ", " \-I
 Read filenames from standard input.
@@ -78,7 +82,7 @@ Browse the history of previous runs even when files are given.
 Do not record this run in the history.
 .TP
 .B \-\-no\-animation
-Open the window without the opening animation.
+Open the window without the opening animation. The animation is off by default, so this only matters in builds that turn it back on.
 .TP
 .B \-\-help
 Show help.
@@ -113,8 +117,12 @@ Go back from the history to the files.
 .B Up/Down
 Move the selection; hold Shift to extend it.
 .TP
-.B Escape
-Close.
+.BR Escape ", " q
+Close. Both work anywhere except while typing in the history search field,
+where Escape leaves the field first and \fBq\fR types a q.
+.B q
+also works in the terminal drake was started from, while it is the
+foreground job.
 .SH EXAMPLES
 .TP
 Drag a single file and quit once it lands:

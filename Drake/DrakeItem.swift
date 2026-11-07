@@ -97,6 +97,14 @@ nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
         }
     }
 
+    /// Whether two URLs name the same directory. Compared as normalised
+    /// components so a trailing slash or an unresolved symlink (`/tmp` against
+    /// `/private/tmp`) does not make one folder look like two.
+    static func isSameDirectory(_ lhs: URL, _ rhs: URL) -> Bool {
+        lhs.standardizedFileURL.resolvingSymlinksInPath().pathComponents
+            == rhs.standardizedFileURL.resolvingSymlinksInPath().pathComponents
+    }
+
     /// Path relative to `base`, or nil when the file is not under it.
     static func relativePath(of url: URL, under base: URL) -> String? {
         let target = url.standardizedFileURL.resolvingSymlinksInPath().pathComponents
@@ -105,27 +113,54 @@ nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
         return target.dropFirst(root.count).joined(separator: "/")
     }
 
-    /// Secondary line under the name: containing folder for files, scheme for URIs.
+    /// Secondary line under the name: size or kind, then the containing folder
+    /// when the file lives somewhere other than the working directory. Files in
+    /// the working directory say nothing about their location, and an unknown
+    /// size says nothing at all rather than showing a bare separator.
     func detail(relativeTo base: URL) -> String {
         guard let fileURL else { return uri }
+
+        let lead: String
+        if !exists {
+            lead = "missing"
+        } else if isDirectory {
+            lead = "Folder"
+        } else {
+            lead = sizeDescription
+        }
+
         let folder = fileURL.deletingLastPathComponent()
-        var location = PathFormatting.abbreviate(folder.path, limit: 38)
-        if folder.standardizedFileURL == base.standardizedFileURL { location = "." }
-        if !exists { return "missing - \(location)" }
-        if isDirectory { return "Folder - \(location)" }
-        return "\(sizeDescription) - \(location)"
+        let location = Self.isSameDirectory(folder, base)
+            ? ""
+            : PathFormatting.abbreviate(folder.path, limit: 38)
+
+        return [lead, location].filter { !$0.isEmpty }.joined(separator: " - ")
     }
 
+    /// Empty when the size cannot be read, so nothing is shown for it.
     var sizeDescription: String {
         guard let fileURL,
               let size = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize
-        else { return "-" }
+        else { return "" }
         return ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
     }
 
     /// What a plain-text drop target receives. Paths are more useful than
     /// percent-encoded URIs when dropping into an editor or a terminal.
     var dragText: String { fileURL?.path ?? uri }
+
+    /// The URL a drag hands over. For a file it is the real file, with every
+    /// symlink resolved: a sandboxed target such as WhatsApp is only granted
+    /// the exact path it receives, so a link pointing elsewhere (say
+    /// ~/.claude-other/CLAUDE.md -> ~/.claude/CLAUDE.md) would be unreadable
+    /// and the drop refused. realpath rather than resolvingSymlinksInPath,
+    /// which turns /private/tmp/… back into /tmp/…, itself a symlink.
+    var dragURI: String {
+        guard let fileURL, let resolved = realpath(fileURL.path, nil) else { return uri }
+        defer { free(resolved) }
+        return URL(fileURLWithPath: String(cString: resolved), isDirectory: fileURL.hasDirectoryPath)
+            .absoluteString
+    }
 
     /// What target mode prints on standard output.
     func outputLine(printPath: Bool) -> String {

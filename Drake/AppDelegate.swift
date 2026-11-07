@@ -36,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuActions = actions
         NSApp.mainMenu = MainMenu.build(actions: actions)
 
-        let window = NSWindow(
+        let window = DrakeWindow(
             contentRect: NSRect(origin: .zero, size: contentSize(for: model, width: nil)),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
@@ -46,22 +46,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
         window.tabbingMode = .disallowed
-        window.contentView = NSHostingView(rootView: RootView().environment(model))
+        window.appearance = Palette.appearance
+        window.backgroundColor = Palette.nsBackground
+        let hostingView = NSHostingView(rootView: RootView().environment(model).tint(Palette.accent))
+        // AppDelegate sizes the window from Metrics; SwiftUI must not resize
+        // it after its first layout pass, or it opens at one height and then
+        // jumps to another.
+        hostingView.sizingOptions = []
+        window.contentView = hostingView
         // Bounded width: long paths get an ellipsis rather than the window
         // stretching to hold them.
-        window.contentMinSize = NSSize(width: Metrics.minWidth, height: 120)
+        // No taller than a one-item window, so a single file fits snugly.
+        window.contentMinSize = NSSize(
+            width: Metrics.minWidth,
+            height: Metrics.footerHeight + Metrics.dividerHeight + Metrics.listHeight(rowCount: 1, iconSize: 24)
+        )
         window.contentMaxSize = NSSize(width: Metrics.maxWidth, height: .greatestFiniteMagnitude)
         window.setContentSize(contentSize(for: model, width: nil))
         window.center()
 
+        // Follow the user across Spaces: drake is often launched from a
+        // terminal on one desktop and dropped into an app on another.
+        // fullScreenAuxiliary lets it also appear over full-screen apps.
+        // The edge flicker during the Space-switch slide is macOS's own: any
+        // app assigned to All Desktops shows it. Floating, .stationary, no
+        // shadow and moving the window after the switch were all tried; none
+        // helped, and moving it left it blinking and minimised.
+        window.collectionBehavior.formUnion([.canJoinAllSpaces, .fullScreenAuxiliary])
         if options.onTop {
             window.level = .floating
-            window.collectionBehavior.insert(.canJoinAllSpaces)
         }
 
         self.window = window
+        window.installEscapeToClose()
         OpenAnimation.show(window, animated: !options.noAnimation)
         NSApp.activate(ignoringOtherApps: true)
+        TerminalKeys.start { NSApp.terminate(nil) }
 
         if options.verbose {
             model.log("Mode: \(model.mode), \(model.items.count) item(s)")
@@ -157,3 +177,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 }
+

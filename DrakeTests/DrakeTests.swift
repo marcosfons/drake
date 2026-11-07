@@ -140,19 +140,74 @@ struct DrakeItemTests {
         #expect(uri.outputLine(printPath: true) == "https://example.com")
     }
 
-    @Test func pasteboardWriterOffersFileURLAndText() {
-        let item = DrakeItem.fromArgument("/etc/hosts", relativeTo: base)
-        let writer = ItemPasteboardWriter(item: item)
-        let types = writer.writableTypes(for: .general)
-        #expect(types.first == .fileURL)
-        #expect(types.contains(.string))
-        #expect(writer.pasteboardPropertyList(forType: .fileURL) as? String == "file:///etc/hosts")
-        #expect(writer.pasteboardPropertyList(forType: .string) as? String == "/etc/hosts")
+    @Test func detailOmitsTheLocationForFilesInTheWorkingDirectory() throws {
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("DrakeDetail-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let here = directory.appendingPathComponent("here.txt")
+        try Data("1234".utf8).write(to: here)
+        let detail = DrakeItem.file(at: here).detail(relativeTo: directory)
+        #expect(detail == "4 bytes", "no \".\" and no separator for the current folder")
+        #expect(!detail.contains("."))
+        #expect(!detail.contains("-"))
+
+        // A subfolder is somewhere else, so it is worth naming.
+        let nested = directory.appendingPathComponent("sub", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        let below = nested.appendingPathComponent("there.txt")
+        try Data("1234".utf8).write(to: below)
+        #expect(DrakeItem.file(at: below).detail(relativeTo: directory).contains(" - "))
     }
 
+    @Test func detailForFoldersAndMissingFilesInTheWorkingDirectory() throws {
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("DrakeDetail-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let folder = directory.appendingPathComponent("stuff", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        #expect(DrakeItem.file(at: folder).detail(relativeTo: directory) == "Folder")
+
+        let gone = directory.appendingPathComponent("gone.txt")
+        #expect(DrakeItem.file(at: gone).detail(relativeTo: directory) == "missing")
+    }
+
+    @Test func unreadableSizeShowsNothingRatherThanASeparator() {
+        // A path that cannot be stat'd yields no size, and no bare hyphen.
+        let gone = URL(fileURLWithPath: "/tmp/drake-absent-\(UUID().uuidString).txt")
+        #expect(DrakeItem.file(at: gone).sizeDescription.isEmpty)
+    }
+
+    /// A file offers `public.file-url` and nothing else, the same set Finder
+    /// sends. Adding plain text makes sandboxed Catalyst targets such as WhatsApp
+    /// refuse the drag at drag-enter, so this is load-bearing, not tidiness.
+    @Test func fileOffersFileURLAlone() {
+        let item = DrakeItem.fromArgument("/etc/hosts", relativeTo: base)
+        let writer = ItemPasteboardWriter(item: item)
+        #expect(writer.writableTypes(for: .general) == [.fileURL])
+        #expect(writer.pasteboardPropertyList(forType: .fileURL) as? String == "file:///private/etc/hosts", "/etc is a symlink; the real path is dragged")
+    }
+
+    /// The text a URI hands over is the path for a file and the URI otherwise,
+    /// never a percent-encoded file URL.
+    @Test func pasteboardWriterWritesPathAsText() {
+        let file = DrakeItem.fromArgument("/etc/hosts", relativeTo: base)
+        #expect(ItemPasteboardWriter(item: file)
+            .pasteboardPropertyList(forType: .string) as? String == "/etc/hosts")
+        #expect(ItemPasteboardWriter(item: .uri("https://example.com"))
+            .pasteboardPropertyList(forType: .string) as? String == "https://example.com")
+    }
+
+    /// A bare URI has no file to offer, so it keeps URL and text: those are the
+    /// only ways a target can take it.
     @Test func pasteboardWriterOmitsFileURLForRemoteURIs() {
         let writer = ItemPasteboardWriter(item: .uri("https://example.com"))
-        #expect(!writer.writableTypes(for: .general).contains(.fileURL))
+        let types = writer.writableTypes(for: .general)
+        #expect(!types.contains(.fileURL))
+        #expect(types == [.URL, .string])
     }
 }
 
@@ -381,7 +436,7 @@ struct MarqueeSelectionTests {
         view.rowHeight = 42
         view.rowSpacing = 4
         view.topInset = 10
-        view.scrollOffset = scrollOffset
+        view.scrollOffsetBox.value = scrollOffset
         return view
     }
 
@@ -727,5 +782,141 @@ struct AppModelTests {
         let gone = DrakeItem.file(at: directory.appendingPathComponent("vanished.txt"))
         model.items = [gone]
         #expect(model.dragPayload(startingAt: gone).isEmpty)
+    }
+}
+
+struct ThumbnailChoiceTests {
+    @Test func picturesAndVideoGetThumbnails() {
+        for name in ["photo.png", "photo.JPG", "shot.heic", "clip.mov", "clip.mp4"] {
+            #expect(Thumbnailer.wantsThumbnail(for: URL(fileURLWithPath: "/tmp/\(name)")), "\(name)")
+        }
+    }
+
+    @Test func documentsUseTheTypeIcon() {
+        for name in ["notes.txt", "data.csv", "README.md", "config.json", "main.swift",
+                     "index.html", "report.pdf", "archive.zip", "no-extension"] {
+            #expect(!Thumbnailer.wantsThumbnail(for: URL(fileURLWithPath: "/tmp/\(name)")), "\(name)")
+        }
+    }
+}
+
+struct DragURITests {
+    @Test func symlinkDragsTheRealFile() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let target = directory.appendingPathComponent("real.md")
+        try Data("# hi\n".utf8).write(to: target)
+        let link = directory.appendingPathComponent("CLAUDE.md")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+
+        let dragged = try #require(URL(string: DrakeItem.file(at: link).dragURI))
+        #expect(dragged.lastPathComponent == "real.md")
+        // Fully resolved: no component of the path is itself a link.
+        #expect(dragged.path == (dragged.path as NSString).resolvingSymlinksInPath
+            || dragged.path.hasPrefix("/private/"))
+        #expect(DrakeItem.file(at: target).dragURI == DrakeItem.file(at: link).dragURI)
+    }
+
+    @Test func remoteURIIsUnchanged() {
+        let item = DrakeItem.uri("https://example.com/a")
+        #expect(item.dragURI == "https://example.com/a")
+    }
+}
+
+struct FilePromiseTests {
+    private func tempDirectory() throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
+    @Test func textFilesAreDraggedAsPromises() throws {
+        let directory = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for name in ["CLAUDE.md", "notes.txt", "data.csv", "config.json", "main.swift", "index.html"] {
+            let url = directory.appendingPathComponent(name)
+            try Data("x".utf8).write(to: url)
+            let item = DrakeItem.file(at: url)
+            #expect(item.dragsAsFilePromise, "\(name)")
+            #expect(item.pasteboardWriter(asAttachment: true) is DataFilePromise, "\(name)")
+            #expect(item.pasteboardWriter(asAttachment: false) is ItemPasteboardWriter, "\(name)")
+        }
+    }
+
+    @Test func otherFilesKeepTheFileURL() throws {
+        let directory = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for name in ["photo.png", "archive.zip", "report.pdf"] {
+            let url = directory.appendingPathComponent(name)
+            try Data("x".utf8).write(to: url)
+            #expect(!DrakeItem.file(at: url).dragsAsFilePromise, "\(name)")
+        }
+        #expect(!DrakeItem.file(at: directory).dragsAsFilePromise)
+        #expect(!DrakeItem.uri("https://example.com/a.md").dragsAsFilePromise)
+        #expect(!DrakeItem.file(at: directory.appendingPathComponent("gone.md")).dragsAsFilePromise)
+    }
+
+    @Test func promiseCopiesTheRealFileUnderItsName() throws {
+        let directory = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = directory.appendingPathComponent("CLAUDE.md")
+        try Data("# drake\n".utf8).write(to: source)
+
+        let promise = try #require(DrakeItem.file(at: source).pasteboardWriter(asAttachment: true) as? DataFilePromise)
+        #expect(promise.fileType == "public.data")
+        #expect(promise.filePromiseProvider(promise, fileNameForType: "public.data") == "CLAUDE.md")
+
+        let destination = directory.appendingPathComponent("dropped.md")
+        var failure: Error?
+        promise.filePromiseProvider(promise, writePromiseTo: destination) { failure = $0 }
+        #expect(failure == nil)
+        #expect(try String(contentsOf: destination, encoding: .utf8) == "# drake\n")
+    }
+}
+
+struct DropTargetAppTests {
+    private let whatsapp = DropTargetApp.Window(
+        bounds: CGRect(x: 100, y: 100, width: 400, height: 300), bundleID: "net.whatsapp.WhatsApp")
+    private let terminal = DropTargetApp.Window(
+        bounds: CGRect(x: 600, y: 100, width: 400, height: 300), bundleID: "com.apple.Terminal")
+
+    @Test func overWhatsAppOffersAttachments() {
+        #expect(DropTargetApp.wantsAttachments(at: CGPoint(x: 300, y: 250), windows: [whatsapp, terminal]))
+    }
+
+    @Test func switchesJustBeforeReachingWhatsApp() {
+        // 20pt left of its window: inside the margin.
+        #expect(DropTargetApp.wantsAttachments(at: CGPoint(x: 80, y: 250), windows: [whatsapp]))
+        #expect(!DropTargetApp.wantsAttachments(at: CGPoint(x: 20, y: 250), windows: [whatsapp]))
+    }
+
+    @Test func otherAppsKeepURLs() {
+        #expect(!DropTargetApp.wantsAttachments(at: CGPoint(x: 700, y: 250), windows: [whatsapp, terminal]))
+        #expect(!DropTargetApp.wantsAttachments(at: CGPoint(x: 2000, y: 2000), windows: [whatsapp, terminal]))
+    }
+
+    @Test func windowInFrontHidesWhatsApp() {
+        let covering = DropTargetApp.Window(bounds: CGRect(x: 200, y: 150, width: 100, height: 100), bundleID: "com.apple.Terminal")
+        #expect(!DropTargetApp.wantsAttachments(at: CGPoint(x: 250, y: 200), windows: [covering, whatsapp]))
+        #expect(DropTargetApp.wantsAttachments(at: CGPoint(x: 450, y: 200), windows: [covering, whatsapp]))
+    }
+}
+
+struct TerminalKeysTests {
+    @Test func qQuits() {
+        #expect(TerminalKeys.asksToQuit(Array("q".utf8)))
+        #expect(TerminalKeys.asksToQuit(Array("Q".utf8)))
+        #expect(TerminalKeys.asksToQuit(Array("xq".utf8)))
+    }
+
+    @Test func otherKeysDoNot() {
+        #expect(!TerminalKeys.asksToQuit(Array("a".utf8)))
+        #expect(!TerminalKeys.asksToQuit([0x1b]))             // Escape
+        #expect(!TerminalKeys.asksToQuit([0x1b, 0x5b, 0x41])) // Up arrow
+        #expect(!TerminalKeys.asksToQuit([UInt8]()))
     }
 }

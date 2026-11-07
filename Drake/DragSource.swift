@@ -9,12 +9,25 @@
 
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
-/// Offers each dragged item as a file URL, a URL, and as plain text.
+/// Offers a file as a file URL alone, and a bare URI as a URL and as plain text.
 ///
-/// Different destinations read different types: Finder and Electron apps such as
-/// WhatsApp take `public.file-url`, browsers accept either the file URL or the
-/// text, and editors and terminals want the text. Order here is priority order.
+/// A file deliberately offers nothing but `public.file-url`, which is exactly
+/// what Finder puts on the pasteboard - the system synthesises the legacy
+/// flavours (`NSFilenamesPboardType`, `Apple URL pasteboard type`) from it, so
+/// old and new receivers are both covered.
+///
+/// Adding `public.utf8-plain-text` alongside it looks harmless and is not.
+/// WhatsApp for Mac is a sandboxed Catalyst app, so its drops arrive through
+/// UIKit's item-provider bridge, and a file drag that also advertises text is
+/// refused outright at drag-enter: no highlight, no drop. Matching Finder's type
+/// set exactly is what makes it accept the drag. The cost is that a target which
+/// takes dragged text but not dragged files no longer receives the path - the
+/// same trade Finder itself makes.
+///
+/// A bare URI such as `https://…` has no file to offer, so it keeps URL and
+/// text, which are the only ways a target can take it.
 final class ItemPasteboardWriter: NSObject, NSPasteboardWriting {
     let item: DrakeItem
 
@@ -23,21 +36,92 @@ final class ItemPasteboardWriter: NSObject, NSPasteboardWriting {
     }
 
     nonisolated func writableTypes(for pasteboard: NSPasteboard) -> [NSPasteboard.PasteboardType] {
-        if item.isFile {
-            return [.fileURL, .URL, .string]
-        }
-        return [.URL, .string]
+        item.isFile ? [.fileURL] : [.URL, .string]
     }
 
     nonisolated func pasteboardPropertyList(forType type: NSPasteboard.PasteboardType) -> Any? {
         switch type {
         case .fileURL, .URL:
-            return item.uri
+            return item.dragURI
         case .string:
             return item.dragText
         default:
             return nil
         }
+    }
+}
+
+/// Hands a text file over as a promise of generic data, fulfilled by copying
+/// the file wherever the receiver asks.
+///
+/// WhatsApp refuses any drag whose item looks like text, and a file URL
+/// carries its file's type: Markdown, JSON, CSV and source code all conform to
+/// `public.text`, so not even Finder can drop a `.md` file there. A promise
+/// declares only `public.data`, which arrives as an ordinary attachment.
+///
+/// A promise gives no path, though, so Terminal and editors need the URL.
+/// Drags therefore start with URLs and switch to promises only while over an
+/// app that needs them; see DropTargetApp.
+nonisolated final class DataFilePromise: NSFilePromiseProvider, NSFilePromiseProviderDelegate,
+    @unchecked Sendable
+{
+    /// The real file, symlinks resolved, and the name the copy is given.
+    let source: URL
+    let name: String
+
+    private static let queue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.qualityOfService = .userInitiated
+        return queue
+    }()
+
+    init(source: URL, name: String) {
+        self.source = source
+        self.name = name
+        super.init()
+        fileType = UTType.data.identifier
+        delegate = self
+    }
+
+    func filePromiseProvider(_ provider: NSFilePromiseProvider, fileNameForType fileType: String) -> String {
+        name
+    }
+
+    func filePromiseProvider(
+        _ provider: NSFilePromiseProvider,
+        writePromiseTo url: URL,
+        completionHandler: @escaping (Error?) -> Void
+    ) {
+        do {
+            try FileManager.default.copyItem(at: source, to: url)
+            completionHandler(nil)
+        } catch {
+            completionHandler(error)
+        }
+    }
+
+    func operationQueue(for provider: NSFilePromiseProvider) -> OperationQueue {
+        Self.queue
+    }
+}
+
+extension DrakeItem {
+    /// Existing text files, which go out as a `DataFilePromise` when the drag
+    /// is over an app that refuses them as URLs.
+    var dragsAsFilePromise: Bool {
+        guard let fileURL, exists, !isDirectory else { return false }
+        let type = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]))?.contentType
+            ?? UTType(filenameExtension: fileURL.pathExtension)
+        return type?.conforms(to: .text) ?? false
+    }
+
+    /// What this item puts on the dragging pasteboard: an attachment copy for
+    /// a text file when `asAttachment`, otherwise its URL.
+    func pasteboardWriter(asAttachment: Bool) -> NSPasteboardWriting {
+        if asAttachment, dragsAsFilePromise, let real = URL(string: dragURI), let fileURL {
+            return DataFilePromise(source: real, name: fileURL.lastPathComponent)
+        }
+        return ItemPasteboardWriter(item: self)
     }
 }
 
@@ -81,11 +165,29 @@ final class DragSourceNSView: NSView, NSDraggingSource {
         }
     }
 
+    /// Rows sit inside the list, but if this overlay ever lands in a hosting
+    /// layer outside it the responder chain would swallow the scroll.
+    override func scrollWheel(with event: NSEvent) {
+        if enclosingScrollView == nil, let scrollView = MarqueeSelectionNSView.scrollView(under: event) {
+            scrollView.scrollWheel(with: event)
+        } else {
+            super.scrollWheel(with: event)
+        }
+    }
+
     override func menu(for event: NSEvent) -> NSMenu? {
         // Right-clicking an unselected row should select it first.
         onClick([])
         return menuProvider()
     }
+
+    private static var promisesInFlight: [NSFilePromiseProvider] = []
+
+    /// The drag in progress, so its pasteboard can be rewritten as it moves.
+    private var draggedItems: [DrakeItem] = []
+    private var draggedTextFiles = false
+    private var offeringAttachments = false
+    private var lastTargetCheck: TimeInterval = 0
 
     private func beginDrag(with event: NSEvent) {
         let items = itemsProvider()
@@ -95,8 +197,13 @@ final class DragSourceNSView: NSView, NSDraggingSource {
         let size = NSSize(width: iconSize, height: iconSize)
         var draggingItems: [NSDraggingItem] = []
 
+        draggedItems = items
+        draggedTextFiles = items.contains { $0.dragsAsFilePromise }
+        offeringAttachments = false
+        lastTargetCheck = 0
+
         for (index, item) in items.enumerated() {
-            let draggingItem = NSDraggingItem(pasteboardWriter: ItemPasteboardWriter(item: item))
+            let draggingItem = NSDraggingItem(pasteboardWriter: item.pasteboardWriter(asAttachment: false))
             // Fan the stack out slightly so a multi-item drag reads as a pile.
             let offset = CGFloat(min(index, 4)) * 4
             let frame = NSRect(
@@ -126,6 +233,27 @@ final class DragSourceNSView: NSView, NSDraggingSource {
         default:
             return [.copy]
         }
+    }
+
+    /// Offers text files as attachments while the drag is near an app that
+    /// needs them, and as URLs everywhere else.
+    func draggingSession(_ session: NSDraggingSession, movedTo screenPoint: NSPoint) {
+        guard draggedTextFiles else { return }
+        // The window list costs a few milliseconds; mouse moves come faster.
+        let now = ProcessInfo.processInfo.systemUptime
+        guard now - lastTargetCheck > 0.03 else { return }
+        lastTargetCheck = now
+
+        let wanted = DropTargetApp.wantsAttachments(near: screenPoint)
+        guard wanted != offeringAttachments else { return }
+        offeringAttachments = wanted
+
+        let writers = draggedItems.map { $0.pasteboardWriter(asAttachment: wanted) }
+        // A receiver may ask for the files after the session has ended, and a
+        // provider is its own (weak) delegate, so keep the latest ones alive.
+        Self.promisesInFlight = writers.compactMap { $0 as? NSFilePromiseProvider }
+        session.draggingPasteboard.clearContents()
+        session.draggingPasteboard.writeObjects(writers)
     }
 
     func draggingSession(

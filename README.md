@@ -52,9 +52,13 @@ the command line cannot be.
 Every dragon option is supported: `-x -t -k -p -a -A -i -f -F -T -I -s -v`,
 `--help`, `--version`. See `man drake`, or `drake --help`.
 
-Dragged items go on the pasteboard as a **file URL**, a **URL** and as **plain
-text**, in that priority order, which is why Finder, browsers, Electron apps and
-plain text fields all accept them.
+A dragged file goes on the pasteboard as a **file URL** and nothing else, which
+is exactly what Finder sends - so anything that takes a file from Finder takes it
+from drake, including sandboxed Mac Catalyst apps such as WhatsApp. Those refuse
+a file drag that also advertises plain text, which is why drake does not offer
+it; the cost is that a target accepting dragged text but not dragged files gets
+nothing, the same trade Finder makes. A dragged **URI** still goes on as a URL
+and as plain text, since that is the only way to accept it.
 
 ### History
 
@@ -80,7 +84,7 @@ Everything starts selected, so one drag sends the whole list.
 | ↑ / ↓, with ⇧ | move / extend |
 | ⌘A ⌘O ⌘R ⌘C | select all, open, reveal in Finder, copy paths |
 | ⌘Y / ⌘[ | show history / back to the files |
-| Escape | close |
+| Escape or `q` | close (`q` also works in the launching terminal) |
 
 Dragging any selected row carries the whole selection.
 
@@ -121,9 +125,9 @@ Icons come from Quick Look where the file has a real thumbnail, otherwise from a
 per-type symbol (`.csv` a green table, `.mp3` a pink note, `.zip` a brown
 zipper, …) classified by UTType, otherwise from Finder.
 
-The opening animation is a 160ms scale-and-fade. Turn it off per run with
-`--no-animation`, or permanently by setting `isEnabled` to `false` in
-`Drake/OpenAnimation.swift`.
+The window appears instantly. A 160ms scale-and-fade opening animation is
+built in but off; set `isEnabled` to `true` in `Drake/OpenAnimation.swift` to
+bring it back (`--no-animation` then skips it per run).
 
 ## Source
 
