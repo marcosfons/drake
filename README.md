@@ -21,6 +21,11 @@ drake report.pdf screenshot.png
 opens a small window holding those files, ready to drag wherever you need them.
 Everything starts selected, so one drag sends the lot.
 
+<p align="center">
+  <img src="docs/source.png" width="380" alt="The drag source window with five files, four of them selected">
+  <img src="docs/history.png" width="400" alt="The history browser, grouped into Pinned, Today, Yesterday and Previous 7 Days">
+</p>
+
 ## Install
 
 ```sh
@@ -114,6 +119,7 @@ make test     # unit tests
 | `Drake/Support/` | geometry, logging, thumbnails, file-type icons |
 | `DrakeTests/` | unit tests, one file per subject |
 | `man/drake.1` | the man page, installed by `make install` |
+| `docs/` | README screenshots |
 | `tools/` | the app icon generator and the shortcut checker |
 
 `CLAUDE.md` holds the project's conventions and code-quality rules.
