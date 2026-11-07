@@ -48,7 +48,7 @@ install: build
 	cp -R "$(APP)" "$(LIBDIR)/Drake.app"
 	printf '#!/bin/sh\n# Launcher for Drake. Runs the app binary directly so it\n# inherits the working directory, stdout and arguments.\nexec "%s/Drake.app/Contents/MacOS/Drake" "$$@"\n' "$(LIBDIR)" > "$(LAUNCHER)"
 	chmod +x "$(LAUNCHER)"
-	sed 's/@NAME@/$(NAME)/g' drake.1 > "$(MANDIR)/$(NAME).1"
+	sed 's/@NAME@/$(NAME)/g' man/drake.1 > "$(MANDIR)/$(NAME).1"
 	@echo
 	@echo "Installed $(LAUNCHER)"
 	@case ":$$PATH:" in \

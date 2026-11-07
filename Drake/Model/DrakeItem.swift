@@ -136,8 +136,8 @@ nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
     /// The URL a drag hands over. For a file it is the real file, with every
     /// symlink resolved: a sandboxed target such as WhatsApp is only granted
     /// the exact path it receives, so a link pointing elsewhere (say
-    /// ~/.claude-other/CLAUDE.md -> ~/.claude/CLAUDE.md) would be unreadable
-    /// and the drop refused. realpath rather than resolvingSymlinksInPath,
+    /// ~/notes.md -> ~/Dropbox/notes.md) would be unreadable and the drop
+    /// refused. realpath rather than resolvingSymlinksInPath,
     /// which turns /private/tmp/… back into /tmp/…, itself a symlink.
     var dragURI: String {
         guard let fileURL, let resolved = realpath(fileURL.path, nil) else { return uri }

@@ -58,6 +58,7 @@ test file per subject in `DrakeTests/`.
 | `Drake/Views/` | `RootView`, `SourceView`, `TargetView`, `HistoryView`, `ItemRow`, `ItemIcon`, `Theme` |
 | `Drake/AppKit/` | `DragSource`, `PasteboardWriters`, `DropTarget`, `DropTargetApp`, `MarqueeSelection`, `ContextMenu` |
 | `Drake/Support/` | `Metrics`, `Log`, `Thumbnailer`, `FileTypeIcon` |
+| `man/drake.1` | the man page (roff); `make install` substitutes `@NAME@` and installs it |
 | `tools/` | `make-icon.swift` (draws the app icon), `check-shortcut.py` |
 
 Model code has no SwiftUI import. Views hold no business logic beyond view
@@ -171,3 +172,9 @@ padding there.
   and why. **No `Co-Authored-By` or other attribution trailers.**
 - Never commit `build/`, `*.profraw`, `xcuserdata/` or `.DS_Store`
   (`.gitignore` covers them). Check `git status` before committing.
+- Remote: `git@github.com:marcosfons/drake.git` (public, SSH). `main` is
+  pushed; never rewrite pushed history.
+- Releases: bump `MARKETING_VERSION` (it is what `drake --version` prints),
+  commit, tag `vX.Y.Z` on that commit, push the tag, then
+  `gh release create vX.Y.Z` with notes. Source-only: drake is installed with
+  `make install`.

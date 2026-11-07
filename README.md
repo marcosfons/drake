@@ -1,176 +1,123 @@
-# drake
+<p align="center">
+  <img src="Drake/Assets.xcassets/AppIcon.appiconset/icon_128x128@2x.png" width="128" height="128" alt="Drake icon">
+</p>
 
-A drag-and-drop source and target for macOS, modelled on
-[mwh/dragon](https://github.com/mwh/dragon) for X and Wayland, written in Swift
-with native views, real file icons and a history of past runs.
+<h1 align="center">drake</h1>
 
-Many applications — web apps, WhatsApp, Slack, browsers — expect files to be
-dragged into them. If you do not habitually use Finder that is a problem:
+<p align="center">
+  Drag and drop from the command line on macOS, with a history of past runs.<br>
+  A native take on <a href="https://github.com/mwh/dragon">mwh/dragon</a>.
+</p>
 
-```sh
-drake file.tar.gz
-```
+---
 
-opens a small window holding that file, ready to be dragged wherever you need it.
-
-## Installing
-
-```sh
-make install                 # into ~/.local
-make PREFIX=/usr/local install
-make NAME=dd install         # different command name
-```
-
-This puts the app bundle in `$PREFIX/lib/Drake.app`, a launcher script at
-`$PREFIX/bin/drake`, and the man page in `$PREFIX/share/man/man1`. The launcher
-execs the app binary directly, so it inherits the working directory, arguments
-and standard output like any other command-line tool.
-
-If `~/.local/bin` is not on your `PATH`, add to `~/.zshrc`:
+Web apps, chat apps and browsers want files *dragged* into them. If you live in
+a terminal rather than Finder, that is awkward. drake fixes it:
 
 ```sh
-export PATH="$HOME/.local/bin:$PATH"
+drake report.pdf screenshot.png
 ```
 
-`make uninstall` removes all of it. `make test` runs the unit tests.
+opens a small window holding those files, ready to drag wherever you need them.
+Everything starts selected, so one drag sends the lot.
 
-Requires macOS 26 and Xcode 26 or later. The app is signed to run locally
-(ad hoc), so no developer certificate is needed to build it. Not sandboxed - a
-tool that opens files named on the command line cannot be.
+## Install
 
-## Using it
+```sh
+git clone git@github.com:marcosfons/drake.git
+cd drake
+make install          # app in ~/.local/lib, `drake` in ~/.local/bin, man page
+```
+
+Requires macOS 26 and Xcode 26 or later. No developer certificate is needed:
+the app is signed to run locally. If `~/.local/bin` is not on your `PATH`, add
+`export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc`.
+
+`make PREFIX=/usr/local install` installs elsewhere, `make NAME=dd install`
+under another command name, and `make uninstall` removes it all.
+
+## Use
 
 | | |
 |---|---|
 | `drake a.txt b.pdf` | a window holding those files, ready to drag out |
 | `drake --target` | a window to drag files *into*; drops are printed to stdout |
-| `drake --target --keep` | as above, but each drop stays as something draggable |
-| `drake --and-exit f.txt` | quit as soon as one drag lands |
+| `drake --target --keep` | as above, and each drop stays draggable |
+| `drake -x f.txt` | quit as soon as one drag lands |
 | `drake --all *.png` | one control that drags everything at once |
 | `find . -name '*.log' \| drake --stdin` | take filenames from a pipe |
 | `drake` | browse the history of previous runs |
 
-Every dragon option is supported: `-x -t -k -p -a -A -i -f -F -T -I -s -v`,
-`--help`, `--version`. See `man drake`, or `drake --help`.
-
-A dragged file goes on the pasteboard as a **file URL** and nothing else, which
-is exactly what Finder sends - so anything that takes a file from Finder takes it
-from drake, including sandboxed Mac Catalyst apps such as WhatsApp. Those refuse
-a file drag that also advertises plain text, which is why drake does not offer
-it; the cost is that a target accepting dragged text but not dragged files gets
-nothing, the same trade Finder makes. A dragged **URI** still goes on as a URL
-and as plain text, since that is the only way to accept it.
+Every dragon option works (`-x -t -k -p -a -A -i -f -F -T -I -s -v`, `--help`,
+`--version`), plus `--history`, `--no-history` and `--no-animation`. See
+`man drake`.
 
 ### History
 
-Runs that have files are recorded in
-`~/Library/Application Support/Drake/history.json`. With no arguments, `drake`
-shows them: each entry expands into the items it held, and you can drag any of
-them straight out of the list, drag a whole entry at once, or reopen it as a
-normal drag source. Runs are grouped into Pinned, Today, Yesterday, Previous 7
-Days and Earlier. Search from the toolbar (⌘F works from any screen); rename,
-pin and remove from an entry's context menu; **History ▸ Clear History…** removes
-everything that is not pinned.
+Runs with files are kept in `~/Library/Application Support/Drake/history.json`.
+`drake` with no arguments lists them by date: expand a run to drag single items
+out of it, drag the whole run at once, or double-click to reopen it. Search with
+⌘F; rename, pin or remove from the context menu.
 
-`--no-history` skips recording a run. `-H` opens the history even when files are
-given.
-
-### Selection
-
-Everything starts selected, so one drag sends the whole list.
+### Keys
 
 | | |
 |---|---|
-| Click | select just that row |
-| ⌘-click | toggle a row |
-| ⇧-click | extend the range |
-| Press and sweep in empty space | rubber-band select |
-| ↑ / ↓, with ⇧ | move / extend |
-| ⌘A ⌘O ⌘R ⌘C | select all, open, reveal in Finder, copy paths |
+| Click, ⌘-click, ⇧-click, sweep | select, toggle, extend, rubber-band |
+| ↑ / ↓ | move the selection (⇧ extends) |
+| ⌘O ⌘R ⌘C | open, reveal in Finder, copy paths |
 | Delete | remove the selected rows from the list |
-| ⌘Y / ⌘[ / ⌘F | show history / back to the files / search the history |
-| Escape, `q` or ⌘W | close (`q` also works in the launching terminal) |
+| ⌘Y / ⌘[ / ⌘F | history / back / search history |
+| Escape, `q`, ⌘W | close (`q` also works in the launching terminal) |
 
-Dragging any selected row carries the whole selection.
+### Dragging into picky apps
 
-## A global shortcut
+A dragged file carries a file URL and nothing else, exactly like Finder, so any
+app that accepts files from Finder accepts them from drake. WhatsApp also
+refuses text-type files (`.md`, `.json`, `.csv`, code) even from Finder; drake
+notices when a drag reaches a WhatsApp window and hands those over as plain
+attachments instead.
 
-macOS has no built-in way to bind a key to a command, but Shortcuts.app does it
-in about a minute:
+### A global shortcut
 
-1. Open **Shortcuts.app** → **File ▸ New Shortcut**, name it `Drake`.
-2. Add the **Run Shell Script** action with:
-   ```sh
-   $HOME/.local/bin/drake
-   ```
-3. In the shortcut's details pane (ⓘ), click **Add Keyboard Shortcut** and press
-   **⌃⌥⌘D**.
-
-I checked this machine before suggesting it: `⌥⌘D` is taken (Dock hiding) and so
-is `⌃⌘D`, but `⌃⌥⌘D` is free. Verify any combo yourself with:
-
-```sh
-make check-shortcut KEY=ctrl+opt+cmd+D    # -> free, or the id that claims it
-make check-shortcut                       # list everything in use
-```
-
-That reads macOS's own shortcut table, so it cannot see hotkeys registered
-privately by launchers like Raycast or Alfred.
-
-With no arguments that opens the history browser, which is usually what you want
-from a hotkey: pick a previous run and drag it out again.
-
-## Layout
-
-The window is always dark: a near-black body, white type and one cool blue for
-selection and the drop highlight. There is no footer. The title says what is
-listed (`3 Items`, `2 of 3 Selected`, `1 Received`) and the compact toolbar
-holds History, Back and the history search.
-
-The window is sized to its contents: 380pt wide, and exactly as tall as its rows
-up to nine of them, after which the list scrolls. Long paths lose their middle
-directories (`/Volumes/…/reports/summary.pdf`) rather than widening the window.
-
-Icons come from Quick Look where the file has a real thumbnail, otherwise from a
-per-type symbol (`.csv` a green table, `.mp3` a pink note, `.zip` a brown
-zipper, …) classified by UTType, otherwise from Finder.
-
-The window opens with the system's own document-window animation, which never
-delays it; `--no-animation` turns that off.
-
-## Menus
-
-The menu bar is complete: **About Drake** (version and credits), Services,
-Hide; **File** (Open, Reveal in Finder, Close); **Edit** (the standard text
-commands, which also work on the list); **History** (Show History, Back, Clear
-History…); **Window** (Minimize, Zoom, Keep on Top); and **Help**, whose
-**Drake Help** opens this tool's man page in Terminal.
+Shortcuts.app can bind drake to a key: create a shortcut with a **Run Shell
+Script** action running `$HOME/.local/bin/drake`, then give it a keyboard
+shortcut such as ⌃⌥⌘D. With no arguments it opens the history, which is
+usually what you want from a hotkey. `make check-shortcut KEY=ctrl+opt+cmd+D`
+tells you whether macOS already uses a combination.
 
 ## When something goes wrong
 
-drake logs to the unified log under the subsystem `com.marcos.Drake`, in the
-categories `app`, `drag`, `drop`, `history` and `thumbnails`:
+drake logs to the unified log under `com.marcos.Drake`:
 
 ```sh
-make log                                                  # the last hour
-log stream --level debug --predicate 'subsystem == "com.marcos.Drake"'
-drake --verbose …                                         # the same, on stderr
+make log              # the last hour
+drake --verbose …     # the same messages, on stderr
 ```
 
-Warnings and errors are also kept in `~/Library/Logs/Drake/drake.log` (rotated
-at 256 KB), which **Help ▸ Show Problem Log** opens in Console. Crashes land in
-Console's Crash Reports like any other app's.
+Warnings and errors are also kept in `~/Library/Logs/Drake/drake.log`, which
+**Help ▸ Show Problem Log** opens in Console.
 
-## Source
+## Development
+
+```sh
+make          # Release build
+make test     # unit tests
+```
 
 | | |
 |---|---|
-| `Drake/App/` | entry point, app delegate, window, toolbar, menu bar, terminal keys |
-| `Drake/Model/` | options, items, file info, selection, history store and sections, the app model |
-| `Drake/Views/` | the three screens, rows, icons, and the theme (colours and type) |
-| `Drake/AppKit/` | the drag source, drop target, pasteboard writers, sweep selection, context menus |
-| `Drake/Support/` | geometry (`Metrics`), logging, thumbnails, per-type icons |
+| `Drake/App/` | entry point, app delegate, window, toolbar, menu bar |
+| `Drake/Model/` | options, items, selection, history, the app model |
+| `Drake/Views/` | the screens, rows, icons and theme |
+| `Drake/AppKit/` | drag source, drop target, pasteboard, sweep selection |
+| `Drake/Support/` | geometry, logging, thumbnails, file-type icons |
 | `DrakeTests/` | unit tests, one file per subject |
+| `man/drake.1` | the man page, installed by `make install` |
 | `tools/` | the app icon generator and the shortcut checker |
 
-Licensed under the GNU GPL version 3, as dragon is.
+`CLAUDE.md` holds the project's conventions and code-quality rules.
+
+## License
+
+GPL-3.0, as dragon is. See [LICENSE](LICENSE).
