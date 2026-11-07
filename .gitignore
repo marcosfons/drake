@@ -1,5 +1,20 @@
+# Build output (make uses ./build as derived data)
 build/
-.DS_Store
-xcuserdata/
+DerivedData/
 *.xcresult
+*.dSYM/
+
+# Coverage and profiling output
 *.profraw
+*.profdata
+
+# Per-user Xcode state
+xcuserdata/
+*.xcuserstate
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Claude Code per-user settings (project settings.json is shared)
+.claude/settings.local.json

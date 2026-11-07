@@ -10,7 +10,7 @@
 import AppKit
 import Foundation
 
-struct Selection: Equatable {
+nonisolated struct Selection: Equatable {
     var ids: Set<UUID> = []
     /// Row the next ⇧-click extends from.
     var anchor: UUID?

@@ -28,7 +28,7 @@ import UniformTypeIdentifiers
 ///
 /// A bare URI such as `https://…` has no file to offer, so it keeps URL and
 /// text, which are the only ways a target can take it.
-final class ItemPasteboardWriter: NSObject, NSPasteboardWriting {
+nonisolated final class ItemPasteboardWriter: NSObject, NSPasteboardWriting {
     let item: DrakeItem
 
     init(item: DrakeItem) {
@@ -105,7 +105,7 @@ nonisolated final class DataFilePromise: NSFilePromiseProvider, NSFilePromisePro
     }
 }
 
-extension DrakeItem {
+nonisolated extension DrakeItem {
     /// Existing text files, which go out as a `DataFilePromise` when the drag
     /// is over an app that refuses them as URLs.
     var dragsAsFilePromise: Bool {

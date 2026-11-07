@@ -16,14 +16,14 @@ import AppKit
 enum DropTargetApp {
     /// Apps that refuse a text file dragged as a file URL but accept it as an
     /// attachment.
-    static let attachmentApps: Set<String> = ["net.whatsapp.WhatsApp"]
+    nonisolated static let attachmentApps: Set<String> = ["net.whatsapp.WhatsApp"]
 
     /// Switch this far outside an attachment app's window, so the drag is
     /// already rewritten when the app first inspects it at drag-enter.
-    static let margin: CGFloat = 40
+    nonisolated static let margin: CGFloat = 40
 
     /// A normal window on screen, in window-list (top-left origin) coordinates.
-    struct Window {
+    nonisolated struct Window {
         var bounds: CGRect
         var bundleID: String?
     }
@@ -38,7 +38,7 @@ enum DropTargetApp {
     /// Walks windows front to back. An attachment app wins as soon as the point
     /// is within `margin` of one of its windows; any other window that actually
     /// covers the point hides whatever lies behind it.
-    static func wantsAttachments(at point: CGPoint, windows: [Window]) -> Bool {
+    nonisolated static func wantsAttachments(at point: CGPoint, windows: [Window]) -> Bool {
         for window in windows {
             if let id = window.bundleID, attachmentApps.contains(id),
                window.bounds.insetBy(dx: -margin, dy: -margin).contains(point) {

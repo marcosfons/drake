@@ -57,7 +57,7 @@ final class DrakeWindow: NSWindow {
             .isEmpty
     }
 
-    deinit {
+    isolated deinit {
         if let escapeMonitor {
             NSEvent.removeMonitor(escapeMonitor)
         }

@@ -9,7 +9,7 @@
 import Foundation
 
 /// How a file's label is rendered in the window.
-enum NameStyle {
+nonisolated enum NameStyle {
     /// Path relative to the working directory when the file lives under it,
     /// absolute otherwise. This is dragon's default.
     case relative
@@ -19,13 +19,13 @@ enum NameStyle {
     case fullPath
 }
 
-enum OptionError: Error {
+nonisolated enum OptionError: Error {
     case help
     case version
     case message(String)
 }
 
-struct Options {
+nonisolated struct Options {
     static let programName = "drake"
     static let version = "1.0"
 
