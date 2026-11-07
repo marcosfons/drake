@@ -30,12 +30,10 @@ final class MarqueeSelectionNSView: NSView {
     /// Called when a sweep starts; `false` means the selection should be reset.
     var onBegin: (Bool) -> Void = { _ in }
     /// Called continuously with the swept rectangle in this view's coordinates.
-    var onSweep: (CGRect, Bool) -> Void = { _, _ in }
-    var onEnd: () -> Void = {}
+    var onSweep: (CGRect) -> Void = { _ in }
 
     private var anchor: CGPoint?
     private var cursor: CGPoint?
-    private var isAdditive = false
 
     /// Top-left origin, matching the order rows are laid out in.
     override var isFlipped: Bool { true }
@@ -78,8 +76,7 @@ final class MarqueeSelectionNSView: NSView {
     override func mouseDown(with event: NSEvent) {
         anchor = convert(event.locationInWindow, from: nil)
         cursor = nil
-        isAdditive = event.modifierFlags.contains(.command) || event.modifierFlags.contains(.shift)
-        onBegin(isAdditive)
+        onBegin(event.modifierFlags.contains(.command) || event.modifierFlags.contains(.shift))
         needsDisplay = true
     }
 
@@ -88,7 +85,7 @@ final class MarqueeSelectionNSView: NSView {
         let point = convert(event.locationInWindow, from: nil)
         cursor = point
         needsDisplay = true
-        onSweep(Self.rect(from: anchor, to: point), isAdditive)
+        onSweep(Self.rect(from: anchor, to: point))
         autoscroll(with: event)
     }
 
@@ -96,7 +93,6 @@ final class MarqueeSelectionNSView: NSView {
         anchor = nil
         cursor = nil
         needsDisplay = true
-        onEnd()
     }
 
     /// Scrolling stays with the list underneath. The overlay is a sibling layer
@@ -147,9 +143,9 @@ final class MarqueeSelectionNSView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         guard let selectionRect else { return }
         let path = NSBezierPath(rect: selectionRect)
-        NSColor.controlAccentColor.withAlphaComponent(0.18).setFill()
+        Palette.nsAccent.withAlphaComponent(0.16).setFill()
         path.fill()
-        NSColor.controlAccentColor.withAlphaComponent(0.75).setStroke()
+        Palette.nsAccent.withAlphaComponent(0.8).setStroke()
         path.lineWidth = 1
         path.stroke()
     }
@@ -164,8 +160,7 @@ struct MarqueeSelectionOverlay: NSViewRepresentable {
 
     var onBegin: (Bool) -> Void
     /// Receives the indices of the rows the sweep currently covers.
-    var onSweep: ([Int], Bool) -> Void
-    var onEnd: () -> Void = {}
+    var onSweep: ([Int]) -> Void
 
     func makeNSView(context: Context) -> MarqueeSelectionNSView {
         let view = MarqueeSelectionNSView()
@@ -184,10 +179,9 @@ struct MarqueeSelectionOverlay: NSViewRepresentable {
         view.topInset = topInset
         view.scrollOffsetBox = scrollOffset
         view.onBegin = onBegin
-        view.onSweep = { [weak view] rect, additive in
+        view.onSweep = { [weak view] rect in
             guard let view else { return }
-            onSweep(view.rowIndices(in: rect), additive)
+            onSweep(view.rowIndices(in: rect))
         }
-        view.onEnd = onEnd
     }
 }

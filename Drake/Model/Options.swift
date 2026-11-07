@@ -27,7 +27,8 @@ nonisolated enum OptionError: Error {
 
 nonisolated struct Options {
     static let programName = "drake"
-    static let version = "1.0"
+    /// MARKETING_VERSION, so the version is set in one place.
+    static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
 
     var andExit = false
     var target = false
@@ -41,7 +42,7 @@ nonisolated struct Options {
     var readStdin = false
     var thumbSize: CGFloat = 96
     var verbose = false
-    /// Skip the window's opening animation (`--no-animation`).
+    /// Skip the system's window-opening animation (`--no-animation`).
     var noAnimation = false
 
     /// Show the history browser even though arguments were given (`--history`).
@@ -78,7 +79,7 @@ nonisolated struct Options {
           --verbose,     -v  be verbose
           --history,     -H  browse the history of previous runs
           --no-history,  -N  do not record this run in the history
-          --no-animation     open the window without the opening animation
+          --no-animation     open the window without the system's opening animation
           --help             show help
           --version          show version details
         """

@@ -32,8 +32,7 @@ final class DropTargetNSView: NSView {
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        registerForDraggedTypes(Self.acceptedTypes)
+        fatalError("DropTargetNSView is only created in code")
     }
 
     override var isOpaque: Bool { false }
@@ -43,20 +42,12 @@ final class DropTargetNSView: NSView {
         return .copy
     }
 
-    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        .copy
-    }
-
     override func draggingExited(_ sender: NSDraggingInfo?) {
         onHighlight(false)
     }
 
     override func draggingEnded(_ sender: NSDraggingInfo) {
         onHighlight(false)
-    }
-
-    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        true
     }
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
@@ -80,6 +71,8 @@ final class DropTargetNSView: NSView {
             return true
         }
 
+        let types = pasteboard.types?.map(\.rawValue).joined(separator: ", ") ?? "none"
+        Log.drop.warning("Refused a drop with nothing readable; types: \(types)")
         return false
     }
 }

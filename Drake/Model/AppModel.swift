@@ -6,22 +6,21 @@
 //
 
 import AppKit
-import Foundation
 import Observation
 
-enum AppModelError: LocalizedError {
+nonisolated enum AppModelError: LocalizedError {
     case missingFile(String)
 
     var errorDescription: String? {
         switch self {
-        case .missingFile(let name): return "The file `\(name)' does not exist."
+        case .missingFile(let name): "The file `\(name)' does not exist."
         }
     }
 }
 
 @Observable
 final class AppModel {
-    enum Mode: Equatable {
+    nonisolated enum Mode: Equatable {
         /// Files given on the command line, or an entry opened from the history.
         case source
         /// Receives drops and prints them (`--target`).
@@ -42,6 +41,8 @@ final class AppModel {
     var receivedCount = 0
     /// Title of the history entry currently loaded, if any.
     var openedEntryTitle: String?
+    /// Text in the history search field.
+    var historyQuery = ""
 
     /// History entry this run appends to, for target mode.
     private var currentEntryID: UUID?
@@ -52,7 +53,7 @@ final class AppModel {
     init(options: Options, history: HistoryStore) throws {
         self.options = options
         self.history = history
-        let base = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let base = URL(filePath: FileManager.default.currentDirectoryPath, directoryHint: .isDirectory)
         self.baseDirectory = base
 
         let parsed = options.arguments.map { DrakeItem.fromArgument($0, relativeTo: base) }
@@ -91,13 +92,25 @@ final class AppModel {
 
     // MARK: - Window chrome
 
+    /// The window title doubles as the status line: what is listed, and how
+    /// much of it a drag would carry when that is not everything.
     var windowTitle: String {
         switch mode {
-        case .history: return "Drake - History"
-        case .target: return "Drake - Target"
+        case .history:
+            return "History"
+        case .target:
+            guard receivedCount > 0 else { return "Drop Target" }
+            return "\(receivedCount) Received"
         case .source:
-            if let openedEntryTitle { return "Drake - \(openedEntryTitle)" }
-            return "Drake"
+            if let openedEntryTitle { return openedEntryTitle }
+            let total = items.count
+            guard total > 0 else { return "Drake" }
+            let noun = total == 1 ? "Item" : "Items"
+            let selected = selection.count
+            if options.dragAll || selected == 0 || selected == total {
+                return "\(total) \(noun)"
+            }
+            return "\(selected) of \(total) Selected"
         }
     }
 
@@ -150,32 +163,21 @@ final class AppModel {
     }
 
     func openSelected() {
-        for item in selectedItems {
-            if let url = item.fileURL {
-                NSWorkspace.shared.open(url)
-            } else if let url = URL(string: item.uri) {
-                NSWorkspace.shared.open(url)
-            }
-        }
+        ItemActions.open(selectedItems)
     }
 
     func revealSelected() {
-        let urls = selectedItems.compactMap(\.fileURL).filter { FileManager.default.fileExists(atPath: $0.path) }
-        guard !urls.isEmpty else { return }
-        NSWorkspace.shared.activateFileViewerSelecting(urls)
+        ItemActions.reveal(selectedItems)
     }
 
     func copySelectedPaths() {
-        let text = selectedItems.map(\.dragText).joined(separator: "\n")
-        guard !text.isEmpty else { return }
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+        ItemActions.copyPaths(selectedItems)
     }
 
     // MARK: - Navigation
 
     func open(entry: HistoryEntry) {
+        Log.app.info("Opening history entry \"\(entry.summary)\" (\(entry.items.count) items)")
         items = entry.items
         openedEntryTitle = entry.summary
         selection.selectAll(itemOrder)
@@ -201,6 +203,7 @@ final class AppModel {
         items = suspended.items
         openedEntryTitle = suspended.title
         mode = suspended.mode
+        historyQuery = ""
         selection.selectAll(itemOrder)
         self.suspended = nil
     }
@@ -210,6 +213,7 @@ final class AppModel {
     /// Prints received items, keeps them when asked, and files them in history.
     func receive(_ received: [DrakeItem]) {
         guard !received.isEmpty else { return }
+        Log.drop.info("Received \(received.count) item(s)")
         for item in received {
             emit(item.outputLine(printPath: options.printPath))
         }
@@ -232,15 +236,13 @@ final class AppModel {
     /// Plain text drops are printed but never become buttons, as in dragon.
     func receiveText(_ text: String) {
         guard !text.isEmpty else { return }
+        Log.drop.info("Received \(text.count) characters of text")
         emit(text)
-        if options.verbose { log("Received text") }
         if options.andExit { terminate() }
     }
 
     func dragEnded(accepted: Bool) {
-        if options.verbose {
-            log("Drag ended; accepted: \(accepted)")
-        }
+        Log.drag.info("Drag ended; accepted: \(accepted)")
         if accepted && options.andExit {
             terminate()
         }
@@ -253,11 +255,36 @@ final class AppModel {
     // MARK: - Output
 
     /// Unbuffered so output is visible immediately when piped.
-    func emit(_ line: String) {
+    private func emit(_ line: String) {
         FileHandle.standardOutput.write(Data((line + "\n").utf8))
     }
+}
 
-    func log(_ message: String) {
-        FileHandle.standardError.write(Data((message + "\n").utf8))
+/// What the Open, Reveal and Copy commands do to a set of items, shared by the
+/// source list and the history browser.
+enum ItemActions {
+    static func open(_ items: [DrakeItem]) {
+        for item in items {
+            guard let url = item.fileURL ?? URL(string: item.uri) else { continue }
+            if !NSWorkspace.shared.open(url) {
+                Log.app.warning("Could not open \(url)")
+            }
+        }
+    }
+
+    /// Selects the items in Finder, skipping any that no longer exist.
+    static func reveal(_ items: [DrakeItem]) {
+        let urls = items.filter(\.exists).compactMap(\.fileURL)
+        guard !urls.isEmpty else { return }
+        NSWorkspace.shared.activateFileViewerSelecting(urls)
+    }
+
+    /// Paths for files, URIs otherwise, one per line.
+    static func copyPaths(_ items: [DrakeItem]) {
+        let text = items.map(\.dragText).joined(separator: "\n")
+        guard !text.isEmpty else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 }

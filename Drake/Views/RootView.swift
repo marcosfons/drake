@@ -19,5 +19,7 @@ struct RootView: View {
                 HistoryView()
             }
         }
+        .background(Palette.background)
+        .tint(Palette.accent)
     }
 }

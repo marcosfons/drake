@@ -5,9 +5,7 @@
 //  A single draggable thing: either a file on disk or a bare URI.
 //
 
-import AppKit
 import Foundation
-import UniformTypeIdentifiers
 
 nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
     let id: UUID
@@ -70,16 +68,10 @@ nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
 
     // MARK: - Presentation
 
-    var path: String? { fileURL?.path }
-
+    /// Checks the disk. For acting on a file; views read `FileInfoCache`.
     var exists: Bool {
         guard let fileURL else { return true }
         return FileManager.default.fileExists(atPath: fileURL.path)
-    }
-
-    var isDirectory: Bool {
-        guard let fileURL else { return false }
-        return (try? fileURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
     }
 
     func label(style: NameStyle, relativeTo base: URL) -> String {
@@ -117,16 +109,16 @@ nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
     /// when the file lives somewhere other than the working directory. Files in
     /// the working directory say nothing about their location, and an unknown
     /// size says nothing at all rather than showing a bare separator.
-    func detail(relativeTo base: URL) -> String {
+    func detail(_ info: FileInfo, relativeTo base: URL) -> String {
         guard let fileURL else { return uri }
 
         let lead: String
-        if !exists {
+        if !info.exists {
             lead = "missing"
-        } else if isDirectory {
+        } else if info.isDirectory {
             lead = "Folder"
         } else {
-            lead = sizeDescription
+            lead = info.sizeDescription
         }
 
         let folder = fileURL.deletingLastPathComponent()
@@ -135,14 +127,6 @@ nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
             : PathFormatting.abbreviate(folder.path, limit: 38)
 
         return [lead, location].filter { !$0.isEmpty }.joined(separator: " - ")
-    }
-
-    /// Empty when the size cannot be read, so nothing is shown for it.
-    var sizeDescription: String {
-        guard let fileURL,
-              let size = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize
-        else { return "" }
-        return ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
     }
 
     /// What a plain-text drop target receives. Paths are more useful than
@@ -166,11 +150,5 @@ nonisolated struct DrakeItem: Identifiable, Hashable, Codable {
     func outputLine(printPath: Bool) -> String {
         if printPath, let path = fileURL?.path { return path }
         return uri
-    }
-
-    var systemIcon: NSImage {
-        guard let fileURL else { return NSWorkspace.shared.icon(for: .url) }
-        if exists { return NSWorkspace.shared.icon(forFile: fileURL.path) }
-        return NSWorkspace.shared.icon(for: .item)
     }
 }

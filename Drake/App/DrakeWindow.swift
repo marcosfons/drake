@@ -2,7 +2,7 @@
 //  DrakeWindow.swift
 //  Drake
 //
-//  Escape closes the window.
+//  Escape and q close the window.
 //
 //  This is done with a local event monitor rather than a SwiftUI keyboard
 //  shortcut or a responder-chain override, because neither is reliable here:
@@ -14,14 +14,20 @@
 import AppKit
 
 final class DrakeWindow: NSWindow {
-    private var escapeMonitor: Any?
+    private var closeKeyMonitor: Any?
 
     /// Starts watching for the close keys. Safe to call once the window exists.
-    func installEscapeToClose() {
-        guard escapeMonitor == nil else { return }
-        escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+    func installCloseKeys() {
+        guard closeKeyMonitor == nil else { return }
+        closeKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, event.window === self else { return event }
             return self.handle(event)
+        }
+    }
+
+    isolated deinit {
+        if let closeKeyMonitor {
+            NSEvent.removeMonitor(closeKeyMonitor)
         }
     }
 
@@ -33,8 +39,8 @@ final class DrakeWindow: NSWindow {
 
         guard isEscape || isQ else { return event }
 
-        // Typing wins over closing: "q" has to reach the history search field,
-        // and there Escape leaves the field first, closing on a second press.
+        // Typing wins over closing: "q" has to reach a text field, and there
+        // Escape leaves the field first, closing on a second press.
         if isEditingText {
             if isEscape {
                 makeFirstResponder(nil)
@@ -57,12 +63,6 @@ final class DrakeWindow: NSWindow {
             .isEmpty
     }
 
-    isolated deinit {
-        if let escapeMonitor {
-            NSEvent.removeMonitor(escapeMonitor)
-        }
-    }
-
     /// Also handles Escape and ⌘. when they do arrive through the chain.
     override func cancelOperation(_ sender: Any?) {
         if isEditingText {
@@ -72,11 +72,12 @@ final class DrakeWindow: NSWindow {
         NSApp.terminate(sender)
     }
 
-    private var isEditingText: Bool {
+    /// Whether a text field (search, rename) has the keyboard.
+    var isEditingText: Bool {
         guard let responder = firstResponder else { return false }
         if let textView = responder as? NSTextView {
             return textView.isFieldEditor || textView.isEditable
         }
-        return responder is NSTextField || responder is NSSearchField
+        return responder is NSTextField
     }
 }

@@ -9,17 +9,10 @@
 import Foundation
 import Observation
 
-struct HistoryEntry: Identifiable, Codable, Hashable {
+nonisolated struct HistoryEntry: Identifiable, Codable, Hashable {
     enum Kind: String, Codable {
         case source
         case target
-
-        var badge: String {
-            switch self {
-            case .source: return "source"
-            case .target: return "target"
-            }
-        }
     }
 
     var id: UUID
@@ -70,7 +63,19 @@ struct HistoryEntry: Identifiable, Codable, Hashable {
         (directory as NSString).abbreviatingWithTildeInPath
     }
 
+    /// Checks the disk; for starting a drag, not for drawing.
     var existingItems: [DrakeItem] { items.filter(\.exists) }
+
+    /// The line under the entry's name: how many items, how many are gone,
+    /// and where the run started.
+    func subtitle(missingCount: Int) -> String {
+        let count = items.count
+        let noun = count == 1 ? "item" : "items"
+        var parts = [kind == .target ? "\(count) dropped" : "\(count) \(noun)"]
+        if missingCount > 0 { parts.append("\(missingCount) missing") }
+        parts.append(directoryLabel)
+        return parts.joined(separator: " - ")
+    }
 
     func matches(_ query: String) -> Bool {
         let needle = query.lowercased()
@@ -96,9 +101,7 @@ final class HistoryStore {
     }
 
     static func defaultFileURL() -> URL {
-        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support")
-        return support.appendingPathComponent("Drake/history.json")
+        URL.applicationSupportDirectory.appending(path: "Drake/history.json", directoryHint: .notDirectory)
     }
 
     // MARK: - Mutation
@@ -116,10 +119,12 @@ final class HistoryStore {
                 && Set($0.items.map(\.uri)) == signature
                 && !signature.isEmpty
         }) {
+            // Read the id before sorting moves the entry somewhere else.
+            let id = entries[index].id
             entries[index].date = Date()
             sortAndTrim()
             save()
-            return entries.first(where: { $0.id == entries[index].id })?.id
+            return id
         }
 
         let entry = HistoryEntry(
@@ -210,8 +215,10 @@ final class HistoryStore {
             decoder.dateDecodingStrategy = .iso8601
             entries = try decoder.decode([HistoryEntry].self, from: data)
             sortAndTrim()
+            Log.history.debug("Loaded \(entries.count) entries from \(fileURL.path)")
         } catch {
             errorMessage = "Could not read history: \(error.localizedDescription)"
+            Log.history.error("Could not read \(fileURL.path): \(error)")
         }
     }
 
@@ -228,6 +235,7 @@ final class HistoryStore {
             errorMessage = nil
         } catch {
             errorMessage = "Could not save history: \(error.localizedDescription)"
+            Log.history.error("Could not write \(fileURL.path): \(error)")
         }
     }
 }

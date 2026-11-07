@@ -10,7 +10,6 @@
 //  Precedence in the UI: Quick Look thumbnail, then this, then Finder's icon.
 //
 
-import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -81,12 +80,11 @@ enum FileTypeIcons {
 
     /// The symbol to draw, or nil when Finder's own icon is the better choice
     /// (folders, apps and other bundles carry real artwork).
-    static func icon(for item: DrakeItem) -> FileTypeIcon? {
+    static func icon(for item: DrakeItem, info: FileInfo) -> FileTypeIcon? {
         guard let url = item.fileURL else { return remoteIcon }
-        if !item.exists { return missingIcon }
+        if !info.exists { return missingIcon }
 
-        let type = (try? url.resourceValues(forKeys: [.contentTypeKey]).contentType)
-            ?? UTType(filenameExtension: url.pathExtension)
+        let type = info.contentType
 
         // Folders, apps and packages have distinctive icons of their own.
         if let type, type.conforms(to: .directory) || type.conforms(to: .package)
