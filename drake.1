@@ -82,7 +82,7 @@ Browse the history of previous runs even when files are given.
 Do not record this run in the history.
 .TP
 .B \-\-no\-animation
-Open the window without the opening animation. The animation is off by default, so this only matters in builds that turn it back on.
+Open the window without the system's window-opening animation.
 .TP
 .B \-\-help
 Show help.
@@ -114,12 +114,19 @@ Show the history.
 .B Cmd-[
 Go back from the history to the files.
 .TP
+.B Cmd-F
+Search the history, from any screen.
+.TP
+.B Delete
+Remove the selected rows from the list.
+.TP
 .B Up/Down
 Move the selection; hold Shift to extend it.
 .TP
-.BR Escape ", " q
-Close. Both work anywhere except while typing in the history search field,
-where Escape leaves the field first and \fBq\fR types a q.
+.BR Escape ", " q ", " Cmd-W
+Close. Escape and \fBq\fR work anywhere except while typing in a text field
+(the history search, a rename), where Escape leaves the field first and
+\fBq\fR types a q.
 .B q
 also works in the terminal drake was started from, while it is the
 foreground job.
@@ -139,6 +146,16 @@ Take filenames from a pipe:
 .TP
 Reopen something dragged earlier:
 .B @NAME@
+.SH FILES
+.TP
+.I ~/Library/Application Support/Drake/history.json
+The history of previous runs.
+.TP
+.I ~/Library/Logs/Drake/drake.log
+Warnings and errors, rotated at 256 KB. Help > Show Problem Log opens it.
+Everything else goes to the unified log under the subsystem
+.BR com.marcos.Drake :
+.B log show \-\-last 1h \-\-predicate 'subsystem == "com.marcos.Drake"'
 .SH EXIT STATUS
 Exits 0 normally, 1 on a bad option or a file that does not exist.
 .SH SEE ALSO

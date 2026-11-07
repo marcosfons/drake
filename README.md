@@ -32,10 +32,11 @@ If `~/.local/bin` is not on your `PATH`, add to `~/.zshrc`:
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-`make uninstall` removes all of it. `make test` runs the test suite.
+`make uninstall` removes all of it. `make test` runs the unit tests.
 
-Requires macOS 26 and Xcode 26. Not sandboxed — a tool that opens files named on
-the command line cannot be.
+Requires macOS 26 and Xcode 26 or later. The app is signed to run locally
+(ad hoc), so no developer certificate is needed to build it. Not sandboxed - a
+tool that opens files named on the command line cannot be.
 
 ## Using it
 
@@ -66,7 +67,10 @@ Runs that have files are recorded in
 `~/Library/Application Support/Drake/history.json`. With no arguments, `drake`
 shows them: each entry expands into the items it held, and you can drag any of
 them straight out of the list, drag a whole entry at once, or reopen it as a
-normal drag source. Entries can be searched, renamed, pinned and deleted.
+normal drag source. Runs are grouped into Pinned, Today, Yesterday, Previous 7
+Days and Earlier. Search from the toolbar (⌘F works from any screen); rename,
+pin and remove from an entry's context menu; **History ▸ Clear History…** removes
+everything that is not pinned.
 
 `--no-history` skips recording a run. `-H` opens the history even when files are
 given.
@@ -83,8 +87,9 @@ Everything starts selected, so one drag sends the whole list.
 | Press and sweep in empty space | rubber-band select |
 | ↑ / ↓, with ⇧ | move / extend |
 | ⌘A ⌘O ⌘R ⌘C | select all, open, reveal in Finder, copy paths |
-| ⌘Y / ⌘[ | show history / back to the files |
-| Escape or `q` | close (`q` also works in the launching terminal) |
+| Delete | remove the selected rows from the list |
+| ⌘Y / ⌘[ / ⌘F | show history / back to the files / search the history |
+| Escape, `q` or ⌘W | close (`q` also works in the launching terminal) |
 
 Dragging any selected row carries the whole selection.
 
@@ -117,6 +122,11 @@ from a hotkey: pick a previous run and drag it out again.
 
 ## Layout
 
+The window is always dark: a near-black body, white type and one cool blue for
+selection and the drop highlight. There is no footer. The title says what is
+listed (`3 Items`, `2 of 3 Selected`, `1 Received`) and the compact toolbar
+holds History, Back and the history search.
+
 The window is sized to its contents: 380pt wide, and exactly as tall as its rows
 up to nine of them, after which the list scrolls. Long paths lose their middle
 directories (`/Volumes/…/reports/summary.pdf`) rather than widening the window.
@@ -125,22 +135,42 @@ Icons come from Quick Look where the file has a real thumbnail, otherwise from a
 per-type symbol (`.csv` a green table, `.mp3` a pink note, `.zip` a brown
 zipper, …) classified by UTType, otherwise from Finder.
 
-The window appears instantly. A 160ms scale-and-fade opening animation is
-built in but off; set `isEnabled` to `true` in `Drake/OpenAnimation.swift` to
-bring it back (`--no-animation` then skips it per run).
+The window opens with the system's own document-window animation, which never
+delays it; `--no-animation` turns that off.
+
+## Menus
+
+The menu bar is complete: **About Drake** (version and credits), Services,
+Hide; **File** (Open, Reveal in Finder, Close); **Edit** (the standard text
+commands, which also work on the list); **History** (Show History, Back, Clear
+History…); **Window** (Minimize, Zoom, Keep on Top); and **Help**, whose
+**Drake Help** opens this tool's man page in Terminal.
+
+## When something goes wrong
+
+drake logs to the unified log under the subsystem `com.marcos.Drake`, in the
+categories `app`, `drag`, `drop`, `history` and `thumbnails`:
+
+```sh
+make log                                                  # the last hour
+log stream --level debug --predicate 'subsystem == "com.marcos.Drake"'
+drake --verbose …                                         # the same, on stderr
+```
+
+Warnings and errors are also kept in `~/Library/Logs/Drake/drake.log` (rotated
+at 256 KB), which **Help ▸ Show Problem Log** opens in Console. Crashes land in
+Console's Crash Reports like any other app's.
 
 ## Source
 
 | | |
 |---|---|
-| `main.swift`, `Options.swift` | entry point and dragon-compatible option parsing |
-| `AppModel.swift`, `Selection.swift` | modes, items, Finder-style selection |
-| `DrakeItem.swift`, `PathFormatting.swift` | items and path shortening |
-| `HistoryStore.swift` | the on-disk history |
-| `DragSource.swift`, `DropTarget.swift` | the AppKit drag/drop bridges |
-| `MarqueeSelection.swift` | rubber-band selection |
-| `FileTypeIcon.swift`, `Thumbnailer.swift` | icons |
-| `Metrics.swift` | window and row geometry, shared by views and window sizing |
-| `SourceView`, `TargetView`, `HistoryView` | the three screens |
+| `Drake/App/` | entry point, app delegate, window, toolbar, menu bar, terminal keys |
+| `Drake/Model/` | options, items, file info, selection, history store and sections, the app model |
+| `Drake/Views/` | the three screens, rows, icons, and the theme (colours and type) |
+| `Drake/AppKit/` | the drag source, drop target, pasteboard writers, sweep selection, context menus |
+| `Drake/Support/` | geometry (`Metrics`), logging, thumbnails, per-type icons |
+| `DrakeTests/` | unit tests, one file per subject |
+| `tools/` | the app icon generator and the shortcut checker |
 
 Licensed under the GNU GPL version 3, as dragon is.
