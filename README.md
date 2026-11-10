@@ -9,6 +9,13 @@
   A native take on <a href="https://github.com/mwh/dragon">mwh/dragon</a>.
 </p>
 
+<p align="center">
+  <a href="https://github.com/marcosfons/drake/releases/latest"><img src="https://img.shields.io/github/v/release/marcosfons/drake" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/macOS-26-1f6feb" alt="macOS 26">
+  <img src="https://img.shields.io/badge/Swift-6-f05138" alt="Swift 6">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/marcosfons/drake" alt="GPL-3.0 license"></a>
+</p>
+
 ---
 
 Web apps, chat apps and browsers want files *dragged* into them. If you live in
@@ -91,6 +98,26 @@ shortcut such as ⌃⌥⌘D. With no arguments it opens the history, which is
 usually what you want from a hotkey. `make check-shortcut KEY=ctrl+opt+cmd+D`
 tells you whether macOS already uses a combination.
 
+## Teach your agent
+
+drake also lets an AI agent with a shell (Claude Code, Codex) pass files to
+you and take files from you: it opens a window for you to drag something out
+of, or to drop something on and hand the paths back. Add this to your
+`CLAUDE.md` (or `AGENTS.md`):
+
+```markdown
+- **`drake`**: drag and drop between the terminal and other apps. Use it when a
+  file has to go into a browser, chat or upload form, or when I should hand you
+  files from Finder or another app.
+  - Give me files: `drake FILE...` (URLs too). A window opens with everything
+    selected and I drag it out. `-x` quits once a drag lands; otherwise it stays
+    until I close it.
+  - Get files from me: `drake -t -p -x`. I drop on its window, the paths print to
+    stdout one per line, and it quits after that drop.
+  - It blocks until the window closes: run it in the background and read the
+    output when it exits. Details: `man drake`.
+```
+
 ## When something goes wrong
 
 drake logs to the unified log under `com.marcos.Drake`:
@@ -103,11 +130,15 @@ drake --verbose …     # the same messages, on stderr
 Warnings and errors are also kept in `~/Library/Logs/Drake/drake.log`, which
 **Help ▸ Show Problem Log** opens in Console.
 
+Reporting a bug: the [issue template](https://github.com/marcosfons/drake/issues/new/choose)
+asks for the command, `drake --version` and the relevant log lines.
+
 ## Development
 
 ```sh
 make          # Release build
 make test     # unit tests
+make check    # both, failing on any warning
 ```
 
 | | |
@@ -124,6 +155,14 @@ make test     # unit tests
 
 `CLAUDE.md` holds the project's conventions and code-quality rules.
 
+## Privacy
+
+drake works only on this Mac and sends nothing anywhere. The history keeps the
+paths of the files you ran it with (remove a run from its context menu, or run
+with `--no-history`), and the problem log names a file when something fails
+with it. Details and how to report a problem: [SECURITY.md](SECURITY.md).
+
 ## License
 
-GPL-3.0, as dragon is. See [LICENSE](LICENSE).
+[GPL-3.0](LICENSE), as dragon is. Changes are listed in
+[CHANGELOG.md](CHANGELOG.md).

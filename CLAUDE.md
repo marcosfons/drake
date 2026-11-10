@@ -11,12 +11,13 @@ macOS 26, Xcode 26+.
 make               # Release build (only this Mac's architecture)
 make install       # ~/.local/lib/Drake.app + ~/.local/bin/drake + man page
 make test          # unit tests (Swift Testing), coverage off
+make check         # build + test, fails on any warning (full log in build/check.log)
 make log           # last hour of drake's unified-log entries
 drake --verbose …  # every log message mirrored to stderr
 ```
 
-- Run `make` and `make test` once at the end of a change, not after each edit.
-  Pipe their output through `grep -E 'error|warning'` or `tail`.
+- Run `make check` once at the end of a change, not after each edit. It
+  prints only the result, or the warnings and errors that failed it.
 - **Zero warnings.** A build or test run that adds a warning is not done.
 - Signing is ad hoc (`CODE_SIGN_IDENTITY = "-"`). Do not add a team or a
   certificate requirement.
@@ -60,6 +61,7 @@ test file per subject in `DrakeTests/`.
 | `Drake/Support/` | `Metrics`, `Log`, `Thumbnailer`, `FileTypeIcon` |
 | `man/drake.1` | the man page (roff); `make install` substitutes `@NAME@` and installs it |
 | `tools/` | `make-icon.swift` (draws the app icon), `check-shortcut.py` |
+| `.github/ISSUE_TEMPLATE/` | the bug report form; security reports go private |
 
 Model code has no SwiftUI import. Views hold no business logic beyond view
 state; anything worth testing goes in the model or a pure helper.
@@ -165,6 +167,9 @@ padding there.
 - dragon's option set is the contract. Keep `-x -t -k -p -a -A -i -f -F -T -I -s
   -v`, `--help` and `--version` behaving as dragon documents them; additions get
   their own long options (`--history`, `--no-history`, `--no-animation`).
+- The README's **Teach your agent** snippet is how agents learn to call drake
+  (giving files, `-t -p -x` to take them, blocking until the window closes).
+  A change to any of that updates the snippet and the man page together.
 
 ## Git
 
@@ -175,6 +180,7 @@ padding there.
 - Remote: `git@github.com:marcosfons/drake.git` (public, SSH). `main` is
   pushed; never rewrite pushed history.
 - Releases: bump `MARKETING_VERSION` (it is what `drake --version` prints),
-  commit, tag `vX.Y.Z` on that commit, push the tag, then
-  `gh release create vX.Y.Z` with notes. Source-only: drake is installed with
+  move `CHANGELOG.md`'s Unreleased entries under the new version, commit, tag
+  `vX.Y.Z` on that commit, push the tag, then `gh release create vX.Y.Z` with
+  notes. Source-only: drake is installed with
   `make install`.

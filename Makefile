@@ -4,6 +4,7 @@
 #   make install      install to ~/.local (override with PREFIX=)
 #   make NAME=dd install
 #   make test         unit tests
+#   make check        build and test, failing on any warning
 #   make log          drake's log entries from the last hour
 #   make uninstall
 #   make check-shortcut KEY=ctrl+opt+cmd+D
@@ -26,7 +27,7 @@ LAUNCHER = $(BINDIR)/$(NAME)
 # -quiet keeps the output to warnings and errors.
 XCODEBUILD = xcodebuild -project Drake.xcodeproj -scheme Drake -derivedDataPath $(BUILDDIR) -quiet
 
-.PHONY: all build install uninstall test log clean check-shortcut
+.PHONY: all build install uninstall test check log clean check-shortcut
 
 all: build
 
@@ -36,6 +37,14 @@ build:
 # Coverage stays off so no default.profraw is written next to the tests.
 test:
 	$(XCODEBUILD) -destination 'platform=macOS' -enableCodeCoverage NO test
+
+# Build and test, then fail if either printed a warning (zero-warnings rule).
+check:
+	@mkdir -p "$(BUILDDIR)"
+	@{ $(MAKE) --no-print-directory build && $(MAKE) --no-print-directory test; } > "$(BUILDDIR)/check.log" 2>&1 \
+		|| { tail -n 40 "$(BUILDDIR)/check.log"; exit 1; }
+	@if grep -E '(warning|error):' "$(BUILDDIR)/check.log"; then echo "check: fix the warnings above" >&2; exit 1; fi
+	@echo "check ok: build and tests pass with no warnings"
 
 # Refuses to install a binary built with coverage instrumentation: it would
 # write default.profraw into whatever directory drake is run from.
